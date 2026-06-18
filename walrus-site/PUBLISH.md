@@ -61,8 +61,10 @@ Before final submission, assign a SuiNS name to the site object, then add the
 resulting `https://<name>.wal.app` URL to:
 
 - `README.md`
-- `WALRUS_TRACK.md`
-- `backend/docs/HACKATHON_SUBMISSION.md`
+- the index repository README:
+  <https://github.com/Langclaw-AI-SUI-Ecosystem/langclaw-sui-walrus>
+- backend submission notes:
+  <https://github.com/Langclaw-AI-SUI-Ecosystem/backend/blob/main/docs/HACKATHON_SUBMISSION.md>
 
 Do not claim a public `wal.app` URL in the submission until this route resolves.
 

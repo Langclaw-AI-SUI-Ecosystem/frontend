@@ -4,6 +4,12 @@ Next.js interface for **Langclaw Sui Alpha**, with wallet
 auth, Sui Intelligence, SUI usage credits, Strategy Lab, Alpha Watchlist, and
 Proof Center.
 
+Related repositories:
+
+- Backend: https://github.com/Langclaw-AI-SUI-Ecosystem/backend
+- Move package: https://github.com/Langclaw-AI-SUI-Ecosystem/move
+- Index repository: https://github.com/Langclaw-AI-SUI-Ecosystem/langclaw-sui-walrus
+
 ## User-Facing Areas
 
 | Area | Purpose |
@@ -184,6 +190,7 @@ backtests, but Proof Center should honestly show the journal as not configured.
 ```bash
 node --test tests/sui-wallet.test.mjs
 pnpm typecheck
+pnpm lint
 pnpm build
 ```
 
