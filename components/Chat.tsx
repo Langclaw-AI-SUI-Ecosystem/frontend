@@ -16,6 +16,7 @@ import {
   BookmarkCheckIcon,
   BookmarkPlusIcon,
   CopyIcon,
+  ExternalLinkIcon,
   InfoIcon,
   KeyRoundIcon,
   MessageSquareIcon,
@@ -1247,7 +1248,7 @@ function OnChainDetails({ payload }: { payload: OnChainToolFinalPayload }) {
   };
 
   return (
-    <div className="space-y-3 rounded-md border bg-background/70 p-3">
+    <div className="space-y-3 rounded-xl border border-border/70 bg-background p-4 shadow-xs">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-wrap gap-2">
           <StatusPill label="Mode" value="Sui Intelligence" />
@@ -1260,6 +1261,11 @@ function OnChainDetails({ payload }: { payload: OnChainToolFinalPayload }) {
             <StatusPill
               label="Agent decision proof"
               value={payload.proof.chain.status}
+              variant={
+                payload.proof.chain.status === "anchored"
+                  ? "verified"
+                  : "default"
+              }
             />
           )}
         </div>
@@ -1287,10 +1293,12 @@ function OnChainDetails({ payload }: { payload: OnChainToolFinalPayload }) {
       {payload.proof && <OnChainProofDetails proof={payload.proof} />}
       <OnChainAlphaVisualSummary payload={payload} />
       <div className="space-y-2">
-        <p className="font-medium text-foreground">Tool results</p>
+        <p className="font-serif font-semibold text-foreground text-sm tracking-tight">
+          Tool results
+        </p>
         {payload.tools.map((tool) => (
           <Tool
-            className="mb-0 bg-background"
+            className="mb-0 border-border/70 bg-background"
             defaultOpen
             key={`${tool.commandId}-${tool.provider}`}
           >
@@ -1334,20 +1342,23 @@ function OnChainProofDetails({
 }) {
   return (
     <div className="grid gap-2 md:grid-cols-2">
-      <div className="rounded-md border bg-background p-2">
-        <p className="font-medium text-foreground">Evidence bundle</p>
-        <p className="mt-1 break-all text-sm text-muted-foreground">
+      <div className="rounded-lg border border-border/60 bg-secondary/20 p-2.5">
+        <p className="font-medium text-foreground text-xs">Evidence bundle</p>
+        <p className="mt-1 break-all font-mono text-muted-foreground text-xs">
           {proof.storage.evidenceUri}
         </p>
       </div>
       <a
-        className="rounded-md border bg-background p-2"
+        className="group/proof rounded-lg border border-border/60 bg-secondary/20 p-2.5 transition-colors hover:border-primary/40 hover:bg-accent/30"
         href={proof.chain.explorerUrl}
         rel="noreferrer"
         target="_blank"
       >
-        <p className="font-medium text-foreground">Decision proof</p>
-        <p className="mt-1 break-all text-sm text-muted-foreground">
+        <p className="flex items-center justify-between gap-2 font-medium text-foreground text-xs">
+          Decision proof
+          <ExternalLinkIcon className="size-3 text-muted-foreground/60 transition-colors group-hover/proof:text-primary" />
+        </p>
+        <p className="mt-1 break-all font-mono text-muted-foreground text-xs">
           {proof.chain.txHash ||
             proof.chain.decisionHash ||
             proof.chain.briefHash}
@@ -1367,7 +1378,9 @@ function OnChainAlphaVisualSummary({
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="font-medium text-foreground">Visual summary</p>
+        <p className="font-serif font-semibold text-foreground text-sm tracking-tight">
+          Visual summary
+        </p>
         <StatusPill
           label="Confidence"
           value={`${summary.confidenceLabel} ${summary.confidenceScore}%`}
@@ -1577,7 +1590,7 @@ function AlphaVisualCard({
   title: string;
 }) {
   return (
-    <div className="flex min-h-52 flex-col gap-2 rounded-md border bg-background p-2">
+    <div className="flex min-h-52 flex-col gap-2 rounded-xl border border-border/70 bg-background p-3 shadow-xs transition-colors hover:border-primary/30">
       <p className="font-medium text-foreground text-sm">{title}</p>
       <div className="min-h-32 flex-1">{children}</div>
       <p className="line-clamp-2 min-h-8 text-muted-foreground text-xs">
@@ -1589,7 +1602,7 @@ function AlphaVisualCard({
 
 function EmptyVisualState({ text }: { text: string }) {
   return (
-    <div className="flex h-32 items-center justify-center rounded-md bg-muted/30 px-3 text-center text-muted-foreground text-xs">
+    <div className="flex h-32 items-center justify-center rounded-lg border border-border/50 border-dashed bg-secondary/20 px-3 text-center text-muted-foreground text-xs">
       {text}
     </div>
   );
