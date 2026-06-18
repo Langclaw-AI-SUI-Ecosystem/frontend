@@ -50,7 +50,7 @@ export const Suggestion = ({
   return (
     <Button
       className={cn(
-        "h-auto min-h-8 w-[min(17rem,85vw)] min-w-0 max-w-full shrink-0 cursor-pointer justify-start whitespace-normal rounded-md px-4 py-1.5 text-left leading-snug sm:w-auto sm:max-w-none",
+        "h-auto min-h-8 w-[min(17rem,85vw)] min-w-0 max-w-full shrink-0 cursor-pointer justify-start whitespace-normal rounded-md px-4 py-1.5 text-left leading-snug transition-colors hover:border-primary/40 hover:bg-accent/50 hover:text-accent-foreground sm:w-auto sm:max-w-none",
         className,
       )}
       onClick={handleClick}

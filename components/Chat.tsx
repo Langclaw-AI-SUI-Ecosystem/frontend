@@ -23,6 +23,7 @@ import {
   RefreshCcwIcon,
   SearchIcon,
   ShieldCheckIcon,
+  TriangleAlertIcon,
 } from "lucide-react";
 import {
   Fragment,
@@ -619,19 +620,21 @@ const Chat = ({ sessionId }: ChatProps) => {
         status={status}
         toolMode={toolMode}
       />
-      <div className="flex min-h-0 flex-1 flex-col bg-muted/20">
+      <div className="flex min-h-0 flex-1 flex-col bg-secondary/20">
         <Conversation className="min-h-0">
-          <ConversationContent className="pb-4">
+          <ConversationContent className="mx-auto w-full max-w-3xl pb-4">
             {loading ? (
               <LoadingMessages />
             ) : visibleMessages.length === 0 ? (
-              <ConversationEmptyState>
-                <SearchIcon className="size-5 text-muted-foreground" />
-                <div className="space-y-1">
-                  <h3 className="font-medium text-sm">
+              <ConversationEmptyState className="mx-auto max-w-2xl">
+                <span className="flex size-12 items-center justify-center rounded-2xl border border-primary/20 bg-accent/50 text-primary">
+                  <SearchIcon className="size-5" />
+                </span>
+                <div className="space-y-1.5">
+                  <h3 className="font-serif font-semibold text-foreground text-xl tracking-tight">
                     Ask Langclaw for Sui intelligence
                   </h3>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-muted-foreground text-sm leading-6">
                     {isConnected
                       ? "Ask directly or run Research for source-backed evidence and on-chain checks."
                       : "Connect wallet from the sidebar to chat and load saved sessions."}
@@ -741,62 +744,68 @@ const Chat = ({ sessionId }: ChatProps) => {
         </Conversation>
 
         {(error || saveError || chatError) && (
-          <div className="mx-3 mt-3 shrink-0 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-            {error || saveError || chatError?.message}
+          <div className="mx-auto mt-3 flex w-full max-w-3xl shrink-0 items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-3.5 py-2.5 text-destructive text-sm">
+            <TriangleAlertIcon
+              aria-hidden="true"
+              className="mt-0.5 size-4 shrink-0"
+            />
+            <span>{error || saveError || chatError?.message}</span>
           </div>
         )}
 
-        <PromptInput
-          className="sticky bottom-0 z-20 mx-auto mt-3 w-full shrink-0 rounded-none border-x-0 border-b-0 bg-background p-3"
-          onSubmit={handleSubmit}
-        >
-          <SpeechTranscriptionPreview segments={speechSegments} />
-          <PromptInputBody>
-            <PromptInputTextarea
-              className="min-h-20 pr-12"
-              onChange={(event) => setInput(event.currentTarget.value)}
-              placeholder="Ask about smart-money flow, liquidity anomalies, or protocol momentum..."
-              value={input}
-            />
-          </PromptInputBody>
-          <PromptInputFooter className="flex-wrap items-end gap-2">
-            <PromptInputTools className="flex-1 flex-wrap gap-1.5">
-              <SpeechInput
-                aria-label="Dictate prompt"
-                lang="en-US"
-                onTranscriptionChange={handleSpeechTranscript}
-                size="icon-sm"
-                variant="ghost"
+        <div className="sticky bottom-0 z-20 shrink-0 bg-gradient-to-t from-background via-background to-transparent px-3 pt-3 pb-3">
+          <PromptInput
+            className="mx-auto w-full max-w-3xl rounded-2xl border border-border/70 bg-background p-3 shadow-md transition-shadow focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/10"
+            onSubmit={handleSubmit}
+          >
+            <SpeechTranscriptionPreview segments={speechSegments} />
+            <PromptInputBody>
+              <PromptInputTextarea
+                className="min-h-20 pr-12 text-base leading-7"
+                onChange={(event) => setInput(event.currentTarget.value)}
+                placeholder="Ask about smart-money flow, liquidity anomalies, or protocol momentum..."
+                value={input}
               />
-              <ChatModeControl onChange={setToolMode} value={toolMode} />
-              <Context
-                maxTokens={maxContextTokens}
-                modelId={DEFAULT_CHAT_MODEL_ID}
-                usedTokens={estimatedContextTokens}
-              >
-                <ContextTrigger />
-                <ContextContent>
-                  <ContextContentHeader />
-                  <ContextContentBody className="space-y-1 text-xs text-muted-foreground">
-                    <p>Estimated from this conversation.</p>
-                    <p>Final usage appears after the answer finishes.</p>
-                  </ContextContentBody>
-                </ContextContent>
-              </Context>
-            </PromptInputTools>
-            <PromptInputSubmit
-              disabled={
-                isSigning ||
-                !isConnected ||
-                (!input.trim() &&
-                  status !== "submitted" &&
-                  status !== "streaming")
-              }
-              onStop={handleStop}
-              status={status}
-            />
-          </PromptInputFooter>
-        </PromptInput>
+            </PromptInputBody>
+            <PromptInputFooter className="flex-wrap items-end gap-2">
+              <PromptInputTools className="flex-1 flex-wrap gap-1.5">
+                <SpeechInput
+                  aria-label="Dictate prompt"
+                  lang="en-US"
+                  onTranscriptionChange={handleSpeechTranscript}
+                  size="icon-sm"
+                  variant="ghost"
+                />
+                <ChatModeControl onChange={setToolMode} value={toolMode} />
+                <Context
+                  maxTokens={maxContextTokens}
+                  modelId={DEFAULT_CHAT_MODEL_ID}
+                  usedTokens={estimatedContextTokens}
+                >
+                  <ContextTrigger />
+                  <ContextContent>
+                    <ContextContentHeader />
+                    <ContextContentBody className="space-y-1 text-xs text-muted-foreground">
+                      <p>Estimated from this conversation.</p>
+                      <p>Final usage appears after the answer finishes.</p>
+                    </ContextContentBody>
+                  </ContextContent>
+                </Context>
+              </PromptInputTools>
+              <PromptInputSubmit
+                disabled={
+                  isSigning ||
+                  !isConnected ||
+                  (!input.trim() &&
+                    status !== "submitted" &&
+                    status !== "streaming")
+                }
+                onStop={handleStop}
+                status={status}
+              />
+            </PromptInputFooter>
+          </PromptInput>
+        </div>
       </div>
       {telegramDialog}
     </div>
@@ -833,15 +842,29 @@ function ChatWorkspaceHeader({
   ];
 
   return (
-    <header className="shrink-0 border-b bg-background py-3 pr-4 pl-14 md:px-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <header className="shrink-0 border-border/70 border-b bg-background/80 py-3 pr-4 pl-14 backdrop-blur-md md:px-4">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-semibold text-base tracking-normal">
+            <h2 className="font-serif font-semibold text-foreground text-lg tracking-tight">
               Langclaw workspace
             </h2>
-            <Badge variant={isWorking ? "default" : "outline"}>
-              {isWorking ? "Working" : "Ready"}
+            <Badge
+              className={
+                isWorking
+                  ? ""
+                  : "border-border/70 text-muted-foreground"
+              }
+              variant={isWorking ? "default" : "outline"}
+            >
+              {isWorking ? (
+                <span className="flex items-center gap-1.5">
+                  <span className="size-1.5 animate-pulse rounded-full bg-primary-foreground" />
+                  Working
+                </span>
+              ) : (
+                "Ready"
+              )}
             </Badge>
           </div>
           <p className="mt-1 text-muted-foreground text-sm">
@@ -849,13 +872,13 @@ function ChatWorkspaceHeader({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {items.map((item) => {
             const Icon = item.icon;
 
             return (
               <span
-                className="inline-flex items-center gap-2 rounded-md border bg-muted/30 px-2.5 py-1 text-muted-foreground text-xs"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-secondary/40 px-2.5 py-1 font-medium text-muted-foreground text-xs"
                 key={item.label}
               >
                 <Icon aria-hidden="true" className="size-3.5 text-primary" />
