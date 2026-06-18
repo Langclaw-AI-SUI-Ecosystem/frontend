@@ -30,21 +30,25 @@ export function UserUsageBar() {
   }, [balance, chain.nativeSymbol]);
 
   return (
-    <div className="flex w-full flex-wrap items-center justify-between gap-2 text-sm">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <ShieldCheck className="size-4 text-primary" />
-        <span>Private memory agent</span>
+    <div className="flex w-full flex-wrap items-center justify-between gap-3 text-sm">
+      <div className="flex items-center gap-2.5 text-muted-foreground">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent/60 text-primary">
+          <ShieldCheck className="size-4" />
+        </span>
+        <span className="font-medium text-foreground">Private memory agent</span>
         <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
           {chain.name}
         </Badge>
       </div>
       {isConnected ? (
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Wallet className="size-4" />
-          <span className="font-medium text-foreground">
+        <div className="flex items-center gap-2 rounded-full border border-border/70 bg-secondary/40 px-3 py-1.5 text-muted-foreground">
+          <Wallet className="size-4 text-primary" />
+          <span className="font-medium font-mono text-foreground text-xs">
             {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Wallet"}
           </span>
-          <span>{balanceLabel ?? "Balance loading"}</span>
+          <span className="font-mono text-xs">
+            {balanceLabel ?? "Balance loading"}
+          </span>
         </div>
       ) : (
         <Button size="sm" variant="outline" onClick={openWalletModal}>
