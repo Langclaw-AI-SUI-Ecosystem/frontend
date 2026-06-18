@@ -437,9 +437,12 @@ export default function Page() {
   return (
     <div className="space-y-8">
       <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
+        <div className="flex flex-col gap-3">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-accent/40 px-3 py-1 font-medium text-accent-foreground text-xs">
+            <span className="size-1.5 rounded-full bg-primary" />
+            Settings
+          </span>
+          <p className="max-w-2xl text-balance font-serif text-foreground text-xl leading-8 tracking-tight">
             Manage Sui alert channels, automation limits, and wallet-backed
             account preferences.
           </p>
@@ -971,7 +974,7 @@ function ToggleRow({
   title: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-md border p-3">
+    <div className="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-secondary/20 p-3 transition-colors hover:border-border">
       <span>
         <span className="block font-medium">{title}</span>
         <span className="text-sm text-muted-foreground">{description}</span>
@@ -1024,7 +1027,9 @@ function StatCard({
         <Icon className="size-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <p className="text-3xl font-semibold">{value}</p>
+        <p className="font-serif font-semibold text-3xl tracking-tight">
+          {value}
+        </p>
       </CardContent>
     </Card>
   );
@@ -1053,9 +1058,11 @@ function NumberField({
 
 function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border p-3">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 font-medium">{value}</p>
+    <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
+      <p className="text-muted-foreground text-xs uppercase tracking-wide">
+        {label}
+      </p>
+      <p className="mt-1 font-medium font-mono text-xs">{value}</p>
     </div>
   );
 }
