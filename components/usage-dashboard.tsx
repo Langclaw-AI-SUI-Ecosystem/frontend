@@ -257,8 +257,8 @@ export function UsageDashboard() {
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Coins className="size-4 text-primary" aria-hidden />
+          <CardTitle className="flex items-center gap-2.5 font-serif text-base tracking-tight">
+            <StepBadge n={1} />
             Per-run cost
           </CardTitle>
           <CardDescription>
@@ -299,8 +299,8 @@ export function UsageDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <ShieldCheck className="size-4 text-primary" aria-hidden />
+          <CardTitle className="flex items-center gap-2.5 font-serif text-base tracking-tight">
+            <StepBadge n={2} />
             Your credit balance
           </CardTitle>
           <CardDescription>
@@ -358,8 +358,8 @@ export function UsageDashboard() {
 
       <Card className="md:col-span-2">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Coins className="size-4 text-primary" aria-hidden />
+          <CardTitle className="flex items-center gap-2.5 font-serif text-base tracking-tight">
+            <StepBadge n={3} />
             Top up
           </CardTitle>
           <CardDescription>
@@ -440,9 +440,9 @@ export function UsageDashboard() {
               )}
 
               {result?.kind === "credited" && (
-                <div className="flex flex-col gap-1 rounded-lg border border-primary/30 bg-primary/5 p-3">
-                  <span className="flex items-center gap-1.5 font-medium text-foreground">
-                    <Check className="size-4 text-primary" aria-hidden />
+                <div className="flex flex-col gap-1 rounded-lg border border-success-foreground/25 bg-success/20 p-3">
+                  <span className="flex items-center gap-1.5 font-medium text-success-foreground">
+                    <Check className="size-4" aria-hidden />
                     Credited {nativeAmount(result.amount, symbol)}
                   </span>
                   {lastDigest && (
@@ -527,5 +527,17 @@ export function UsageDashboard() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+/** Numbered step marker for the deposit flow (Per-run cost -> balance -> top up). */
+function StepBadge({ n }: { n: number }) {
+  return (
+    <span
+      aria-hidden
+      className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 font-mono font-semibold text-primary text-xs"
+    >
+      {n}
+    </span>
   );
 }

@@ -268,9 +268,12 @@ export default function Page() {
   return (
     <div className="space-y-8">
       <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Automation Tasks</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
+        <div className="flex flex-col gap-3">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-accent/40 px-3 py-1 font-medium text-accent-foreground text-xs">
+            <span className="size-1.5 rounded-full bg-primary" />
+            Automation
+          </span>
+          <p className="max-w-2xl text-balance font-serif text-foreground text-xl leading-8 tracking-tight">
             Schedule Sui alpha monitors and keep recurring anomaly checks
             moving from one place.
           </p>
@@ -348,7 +351,9 @@ export default function Page() {
       <section className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <Card className="gap-0 rounded-lg" size="sm">
           <CardHeader className="border-b pb-4">
-            <CardTitle>Task Queue</CardTitle>
+            <CardTitle className="font-serif tracking-tight">
+              Task Queue
+            </CardTitle>
             <CardDescription>
               Live tasks returned by your Langclaw backend.
             </CardDescription>
@@ -483,7 +488,9 @@ export default function Page() {
         <div className="space-y-4">
           <Card className="rounded-lg" size="sm">
             <CardHeader>
-              <CardTitle>Create Task</CardTitle>
+              <CardTitle className="font-serif tracking-tight">
+                Create Task
+              </CardTitle>
               <CardDescription>
                 Describe the recurring work Langclaw should run.
               </CardDescription>
@@ -603,7 +610,9 @@ export default function Page() {
 
           <Card className="rounded-lg" size="sm">
             <CardHeader>
-              <CardTitle>Recent Runs</CardTitle>
+              <CardTitle className="font-serif tracking-tight">
+                Recent Runs
+              </CardTitle>
               <CardDescription>Latest Sui monitor activity.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -641,7 +650,9 @@ export default function Page() {
       <Card className="rounded-lg" size="sm">
         <CardHeader>
           <div>
-            <CardTitle>Automation Controls</CardTitle>
+            <CardTitle className="font-serif tracking-tight">
+              Automation Controls
+            </CardTitle>
             <CardDescription>
               Pause or resume every active task for this wallet.
             </CardDescription>
@@ -695,7 +706,9 @@ export default function Page() {
 
       <Card className="rounded-lg" size="sm">
         <CardHeader>
-          <CardTitle>Notifications</CardTitle>
+          <CardTitle className="font-serif tracking-tight">
+            Notifications
+          </CardTitle>
           <CardDescription>
             Smart-money, anomaly, failure, and skipped-run alerts appear here.
           </CardDescription>
@@ -751,7 +764,9 @@ function StatCard({
         <Icon className="size-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <p className="text-3xl font-semibold">{value}</p>
+        <p className="font-serif font-semibold text-3xl tracking-tight">
+          {value}
+        </p>
       </CardContent>
     </Card>
   );
@@ -760,16 +775,16 @@ function StatCard({
 function StatusBadge({ status }: { status: string }) {
   const tone =
     status === "Running" || status === "Active"
-      ? "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900"
+      ? "border-primary/20 bg-primary/10 text-primary"
       : status === "Paused"
-        ? "bg-muted text-muted-foreground ring-border"
+        ? "border-border bg-muted text-muted-foreground"
         : status === "Draft"
-          ? "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900"
-          : "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900";
+          ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300"
+          : "border-border bg-secondary/60 text-foreground";
 
   return (
     <span
-      className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ${tone}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-1 font-medium text-xs ${tone}`}
     >
       {status}
     </span>
@@ -786,9 +801,9 @@ function InfoTile({
   value: string;
 }) {
   return (
-    <div className="rounded-md border p-3">
+    <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
       <div className="flex items-center gap-2 font-medium">
-        <Icon className="size-4 text-muted-foreground" />
+        <Icon className="size-4 text-primary" />
         {label}
       </div>
       <p className="mt-1 text-sm text-muted-foreground">{value}</p>

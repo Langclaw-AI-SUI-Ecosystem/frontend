@@ -143,9 +143,12 @@ export default function WatchlistPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-semibold text-2xl">Alpha Watchlist</h1>
-          <p className="max-w-2xl text-muted-foreground text-sm">
+        <div className="flex flex-col gap-3">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-accent/40 px-3 py-1 font-medium text-accent-foreground text-xs">
+            <span className="size-1.5 rounded-full bg-primary" />
+            Alpha Watchlist
+          </span>
+          <p className="max-w-2xl text-balance font-serif text-foreground text-xl leading-8 tracking-tight">
             Saved Sui intelligence signals for follow-up review, manual
             trading decisions, and hackathon demo evidence.
           </p>
@@ -242,7 +245,14 @@ export default function WatchlistPage() {
                 <Badge variant={item.gapCount ? "outline" : "secondary"}>
                   {item.sourceCount} source{item.sourceCount === 1 ? "" : "s"}
                 </Badge>
-                <Badge variant={item.proofTx || item.decisionId ? "secondary" : "outline"}>
+                <Badge
+                  className={
+                    item.proofTx || item.decisionId
+                      ? "border-success-foreground/25 bg-success/40 text-success-foreground"
+                      : ""
+                  }
+                  variant={item.proofTx || item.decisionId ? "secondary" : "outline"}
+                >
                   {item.proofTx || item.decisionId ? "proof anchored" : "local signal"}
                 </Badge>
               </div>
@@ -254,7 +264,7 @@ export default function WatchlistPage() {
                     {item.recommendation}
                   </p>
                 </div>
-                <div className="rounded-md border bg-muted/20 p-3 text-sm">
+                <div className="rounded-lg border border-border/60 bg-secondary/20 p-3 text-sm">
                   <Detail label="Added" value={formatDate(item.addedAt)} />
                   <Detail label="Intent" value={item.intent} />
                   <Detail label="Decision ID" value={item.decisionId} />
@@ -291,8 +301,12 @@ function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <Card className="rounded-lg" size="sm">
       <CardHeader>
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-2xl">{value}</CardTitle>
+        <CardDescription className="text-xs uppercase tracking-wide">
+          {label}
+        </CardDescription>
+        <CardTitle className="font-serif text-2xl tracking-tight">
+          {value}
+        </CardTitle>
       </CardHeader>
     </Card>
   );
@@ -302,7 +316,7 @@ function Detail({ label, value }: { label: string; value?: string }) {
   return (
     <div className="flex min-w-0 items-center justify-between gap-3 py-0.5">
       <span className="shrink-0 text-muted-foreground">{label}</span>
-      <span className="min-w-0 truncate font-medium">
+      <span className="min-w-0 truncate font-medium font-mono text-xs">
         {value || "Not available"}
       </span>
     </div>

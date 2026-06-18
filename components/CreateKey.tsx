@@ -164,7 +164,7 @@ export default function CreateKey() {
     <div className="space-y-4">
       <Card className="rounded-lg" size="sm">
         <CardHeader>
-          <CardTitle>API Keys</CardTitle>
+          <CardTitle className="font-serif tracking-tight">API Keys</CardTitle>
           <CardDescription>
             Create server-side keys for apps that call Langclaw directly.
           </CardDescription>
@@ -231,14 +231,16 @@ export default function CreateKey() {
           )}
 
           {secret && (
-            <Alert>
-              <KeyRoundIcon className="size-4" />
-              <AlertTitle>Secret key created</AlertTitle>
+            <Alert className="border-success-foreground/25 bg-success/15">
+              <KeyRoundIcon className="size-4 text-success-foreground" />
+              <AlertTitle className="text-success-foreground">
+                Secret key created
+              </AlertTitle>
               <AlertDescription className="space-y-3">
                 <span className="block">
                   This is the only time the full key is shown.
                 </span>
-                <div className="flex min-w-0 items-start gap-2 rounded-md border bg-muted/30 p-2">
+                <div className="flex min-w-0 items-start gap-2 rounded-md border border-border/60 bg-background p-2">
                   <code className="min-w-0 flex-1 break-all font-mono text-xs select-text">
                     {secret}
                   </code>

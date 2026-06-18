@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import { AppTopBar } from "@/components/app-topbar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -21,17 +22,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </>
         ) : (
-          <>
-            {/* <div className="sticky top-0 z-30 border-border/70 border-b bg-background/95 backdrop-blur">
-              <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-col px-4 py-3 md:px-6">
-                <UserUsageBar />
-              </div>
-            </div> */}
+          <div className="flex min-h-[100dvh] flex-col">
+            <AppTopBar />
             <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-1 flex-col px-4 py-8 md:px-6">
-              <SidebarTrigger className="mb-4 md:hidden" />
               {children}
             </div>
-          </>
+          </div>
         )}
       </main>
     </SidebarProvider>
