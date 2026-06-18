@@ -163,9 +163,12 @@ export default function ProofsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-semibold text-2xl">Proof Center</h1>
-          <p className="max-w-2xl text-muted-foreground text-sm">
+        <div className="flex flex-col gap-3">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-success-foreground/25 bg-success/30 px-3 py-1 font-medium text-success-foreground text-xs">
+            <ShieldCheckIcon className="size-3.5" />
+            Proof Center
+          </span>
+          <p className="max-w-2xl text-balance font-serif text-foreground text-xl leading-8 tracking-tight">
             On-chain Langclaw agent decisions recorded on {chainConfig.name} for
             transparent alpha benchmarking.
           </p>
@@ -248,17 +251,24 @@ export default function ProofsPage() {
 
           <Card className="rounded-lg" size="sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FlaskConicalIcon className="size-4 text-muted-foreground" />
+              <CardTitle className="flex items-center gap-2 font-serif tracking-tight">
+                <FlaskConicalIcon className="size-4 text-primary" />
                 Trading Journal
               </CardTitle>
-              <CardDescription className="break-all">
+              <CardDescription className="break-all font-mono text-xs">
                 {strategyPayload?.journalAddress ??
                   strategyPayload?.error ??
                   "Waiting for strategy journal response"}
               </CardDescription>
               <CardAction>
-                <Badge variant="secondary">
+                <Badge
+                  className={
+                    strategyStats.anchored > 0
+                      ? "border-success-foreground/25 bg-success/40 text-success-foreground"
+                      : ""
+                  }
+                  variant="secondary"
+                >
                   {strategyStats.anchored} anchored
                 </Badge>
               </CardAction>
@@ -306,11 +316,11 @@ export default function ProofsPage() {
 
           <Card className="rounded-lg" size="sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DatabaseIcon className="size-4 text-muted-foreground" />
+              <CardTitle className="flex items-center gap-2 font-serif tracking-tight">
+                <DatabaseIcon className="size-4 text-primary" />
                 Registry
               </CardTitle>
-              <CardDescription className="break-all">
+              <CardDescription className="break-all font-mono text-xs">
                 {payload?.registryAddress ?? "Waiting for backend response"}
               </CardDescription>
               <CardAction>
@@ -321,8 +331,8 @@ export default function ProofsPage() {
 
           <Card className="rounded-lg" size="sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShieldCheckIcon className="size-4 text-muted-foreground" />
+              <CardTitle className="flex items-center gap-2 font-serif tracking-tight">
+                <ShieldCheckIcon className="size-4 text-primary" />
                 Recorded Decisions
               </CardTitle>
               <CardDescription>
@@ -380,7 +390,12 @@ function DecisionRow({ decision }: { decision: ProofDecision }) {
       </TableCell>
       <TableCell className="text-right">
         {decision.explorerUrl ? (
-          <Button asChild size="sm" variant="outline">
+          <Button
+            asChild
+            className="border-success-foreground/25 bg-success/20 text-success-foreground hover:bg-success/40"
+            size="sm"
+            variant="outline"
+          >
             <a href={decision.explorerUrl} rel="noreferrer" target="_blank">
               <ExternalLinkIcon className="size-4" />
               {shortHash(decision.txHash)}
@@ -400,8 +415,12 @@ function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <Card className="rounded-lg" size="sm">
       <CardHeader>
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-2xl">{value}</CardTitle>
+        <CardDescription className="text-xs uppercase tracking-wide">
+          {label}
+        </CardDescription>
+        <CardTitle className="font-serif text-2xl tracking-tight">
+          {value}
+        </CardTitle>
       </CardHeader>
     </Card>
   );
@@ -424,7 +443,12 @@ function StrategyRow({ record }: { record: StrategyRunRecord }) {
       <TableCell>{formatDate(record.createdAt)}</TableCell>
       <TableCell className="text-right">
         {record.explorerUrl ? (
-          <Button asChild size="sm" variant="outline">
+          <Button
+            asChild
+            className="border-success-foreground/25 bg-success/20 text-success-foreground hover:bg-success/40"
+            size="sm"
+            variant="outline"
+          >
             <a href={record.explorerUrl} rel="noreferrer" target="_blank">
               <ExternalLinkIcon className="size-4" />
               {shortHash(record.txHash)}

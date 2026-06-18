@@ -324,9 +324,12 @@ export default function StrategyPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="font-semibold text-2xl">Strategy Lab</h1>
-          <p className="max-w-2xl text-muted-foreground text-sm">
+        <div className="flex flex-col gap-3">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-accent/40 px-3 py-1 font-medium text-accent-foreground text-xs">
+            <span className="size-1.5 rounded-full bg-primary" />
+            Strategy Lab
+          </span>
+          <p className="max-w-2xl text-balance font-serif text-foreground text-xl leading-8 tracking-tight">
             Backtest the {chainConfig.name} Liquidity Momentum Strategy with
             Dune-sourced historical data, then record paper-trading proof on{" "}
             {chainConfig.name}.
@@ -705,7 +708,9 @@ function DemoRunway({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-semibold text-base">Strategy demo runway</h2>
+            <h2 className="font-serif font-semibold text-foreground text-lg tracking-tight">
+              Strategy demo runway
+            </h2>
             <Badge variant="outline">{chainName} verifiable</Badge>
           </div>
           <p className="mt-1 max-w-2xl text-muted-foreground text-sm">
@@ -721,20 +726,20 @@ function DemoRunway({
       <div className="mt-4 grid gap-2 md:grid-cols-4">
         {steps.map((step, index) => (
           <div
-            className="flex min-w-0 items-center gap-3 rounded-md border bg-background/70 px-3 py-2"
+            className="flex min-w-0 items-center gap-3 rounded-lg border border-border/60 bg-background px-3 py-2"
             key={step.label}
           >
             <span
               className={[
-                "flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold",
+                "flex size-7 shrink-0 items-center justify-center rounded-full border font-mono font-semibold text-xs",
                 step.state === "done"
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  ? "border-success-foreground/25 bg-success/40 text-success-foreground"
                   : step.state === "active" || step.state === "ready"
                     ? "border-primary/30 bg-primary/10 text-primary"
                     : "border-border bg-muted text-muted-foreground",
               ].join(" ")}
             >
-              {step.state === "done" ? "OK" : index + 1}
+              {step.state === "done" ? "✓" : index + 1}
             </span>
             <div className="min-w-0">
               <p className="truncate font-medium text-sm">{step.label}</p>
@@ -753,8 +758,12 @@ function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <Card className="rounded-lg" size="sm">
       <CardHeader>
-        <CardDescription>{label}</CardDescription>
-        <CardTitle className="text-2xl">{value}</CardTitle>
+        <CardDescription className="text-xs uppercase tracking-wide">
+          {label}
+        </CardDescription>
+        <CardTitle className="font-serif text-2xl tracking-tight">
+          {value}
+        </CardTitle>
       </CardHeader>
     </Card>
   );
@@ -762,9 +771,9 @@ function MetricCard({ label, value }: { label: string; value: string }) {
 
 function Rule({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex min-w-0 items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
+    <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-border/60 bg-secondary/20 px-3 py-2 text-sm">
       <span className="text-muted-foreground">{label}</span>
-      <span className="truncate font-medium">{value}</span>
+      <span className="truncate font-medium font-mono text-xs">{value}</span>
     </div>
   );
 }
@@ -907,10 +916,23 @@ function StrategyProofPanel({
     return null;
   }
 
+  const isAnchored = proof.status === "anchored";
+
   return (
-    <Card className="rounded-lg" size="sm">
+    <Card
+      className={
+        isAnchored
+          ? "rounded-lg border-success-foreground/25 bg-success/10"
+          : "rounded-lg"
+      }
+      size="sm"
+    >
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle
+          className={`flex items-center gap-2 font-serif tracking-tight ${
+            isAnchored ? "text-success-foreground" : ""
+          }`}
+        >
           <ShieldCheckIcon />
           {title}
         </CardTitle>
@@ -922,7 +944,14 @@ function StrategyProofPanel({
           </span>
         </CardDescription>
         <CardAction>
-          <Badge variant={proof.status === "anchored" ? "secondary" : "outline"}>
+          <Badge
+            className={
+              isAnchored
+                ? "border-success-foreground/25 bg-success/40 text-success-foreground"
+                : ""
+            }
+            variant={isAnchored ? "secondary" : "outline"}
+          >
             {proof.strategyStatus}
           </Badge>
         </CardAction>
