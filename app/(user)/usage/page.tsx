@@ -23,7 +23,7 @@ export default function UsagePage() {
           Research runs are billed from prepaid native SUI credits held in an
           on-chain usage vault: each run reserves an estimated cost, then settles
           the actual amount. Connect your wallet to see your balance, per-run
-          cost, and how to top up.
+          cost, top up, and request withdrawals.
         </p>
       </div>
 

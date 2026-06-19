@@ -8,7 +8,16 @@ import {
   useSuiClientQuery,
 } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
-import { Check, Coins, Loader2, ShieldCheck, Wallet } from "lucide-react";
+import {
+  ArrowDownToLine,
+  Check,
+  Clock3,
+  Coins,
+  Loader2,
+  ShieldCheck,
+  Wallet,
+  XCircle,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +34,11 @@ import {
   getUsageBalance,
   getUsageQuote,
   getUsageVaultInfo,
+  listUsageWithdrawals,
+  requestUsageWithdraw,
   verifyUsageDeposit,
   type UsageBalancePayload,
+  type UsageWithdrawalRequest,
 } from "@/lib/langclaw-api";
 
 const MIST_PER_SUI = BigInt(1_000_000_000);
@@ -76,6 +88,14 @@ function readMist(value: string | undefined): bigint | null {
   }
 }
 
+function readSuiAddress(value: string) {
+  const trimmed = value.trim().toLowerCase();
+
+  return /^0x[0-9a-f]{1,64}$/.test(trimmed)
+    ? `0x${trimmed.slice(2).padStart(64, "0")}`
+    : null;
+}
+
 /** Sign failures from a too-large deposit read as opaque gas errors; make them actionable. */
 function toDepositErrorMessage(
   error: unknown,
@@ -97,6 +117,7 @@ function toDepositErrorMessage(
 
 type DepositStage = "idle" | "signing" | "verifying";
 type DepositResult = { kind: "credited" | "already"; amount: string };
+type WithdrawStage = "idle" | "requesting";
 
 // Honest usage panel: live per-run cost, the connected wallet's prepaid SUI
 // credit balance (signature-gated), and a real, recoverable in-app deposit flow.
@@ -126,13 +147,19 @@ export function UsageDashboard() {
   const [balance, setBalance] = useState<UsageBalancePayload | null>(null);
   const [isBalanceLoading, setIsBalanceLoading] = useState(false);
   const [balanceError, setBalanceError] = useState<string | null>(null);
+  const [withdrawals, setWithdrawals] = useState<UsageWithdrawalRequest[]>([]);
 
   const loadBalance = async () => {
     setBalanceError(null);
     setIsBalanceLoading(true);
     try {
       const auth = await getWalletAuth();
-      setBalance(await getUsageBalance(auth));
+      const [nextBalance, nextWithdrawals] = await Promise.all([
+        getUsageBalance(auth),
+        listUsageWithdrawals(auth).catch(() => ({ requests: [] })),
+      ]);
+      setBalance(nextBalance);
+      setWithdrawals(nextWithdrawals.requests ?? []);
     } catch (error) {
       setBalanceError(
         error instanceof Error ? error.message : "Could not load balance.",
@@ -149,6 +176,12 @@ export function UsageDashboard() {
   // recoverable (the credit RPC is idempotent — re-verifying never double-credits).
   const [lastDigest, setLastDigest] = useState<string | null>(null);
   const [result, setResult] = useState<DepositResult | null>(null);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawRecipient, setWithdrawRecipient] = useState("");
+  const [withdrawError, setWithdrawError] = useState<string | null>(null);
+  const [withdrawResult, setWithdrawResult] =
+    useState<UsageWithdrawalRequest | null>(null);
+  const [withdrawStage, setWithdrawStage] = useState<WithdrawStage>("idle");
 
   const quote = quoteQuery.data?.quote;
   const vault = vaultQuery.data;
@@ -168,8 +201,17 @@ export function UsageDashboard() {
     walletBalanceMist !== null &&
     requiredMist !== null &&
     walletBalanceMist < requiredMist;
+  const availableCreditMist = readMist(balance?.balance.availableNeuron);
+  const withdrawMist = suiToMist(withdrawAmount);
+  const withdrawRecipientValue = withdrawRecipient.trim() || address || "";
+  const normalizedWithdrawRecipient = readSuiAddress(withdrawRecipientValue);
+  const hasKnownInsufficientWithdrawBalance =
+    availableCreditMist !== null &&
+    withdrawMist !== null &&
+    withdrawMist > availableCreditMist;
 
   const isDepositing = depositStage !== "idle";
+  const isWithdrawing = withdrawStage !== "idle";
   const canDeposit =
     isConnected &&
     Boolean(depositTarget && vaultObjectId) &&
@@ -177,6 +219,13 @@ export function UsageDashboard() {
     supportsProductNetwork &&
     !hasKnownInsufficientBalance &&
     !isDepositing;
+  const canWithdraw =
+    isConnected &&
+    Boolean(balance) &&
+    withdrawMist !== null &&
+    Boolean(normalizedWithdrawRecipient) &&
+    !hasKnownInsufficientWithdrawBalance &&
+    !isWithdrawing;
   // Deposit landed on-chain but is not yet credited — offer recovery.
   const needsRecovery = Boolean(lastDigest && !result && depositError);
 
@@ -250,6 +299,50 @@ export function UsageDashboard() {
       setDepositError(toDepositErrorMessage(error, symbol, chain.name));
     } finally {
       setDepositStage("idle");
+    }
+  };
+
+  const handleWithdrawRequest = async () => {
+    if (!withdrawMist || !normalizedWithdrawRecipient) return;
+
+    setWithdrawError(null);
+    setWithdrawResult(null);
+    setWithdrawStage("requesting");
+
+    try {
+      const auth = await getWalletAuth();
+      const payload = await requestUsageWithdraw(auth, chain.id, {
+        amountMist: withdrawMist.toString(),
+        recipient: normalizedWithdrawRecipient,
+      });
+
+      if (payload.request) {
+        setWithdrawResult(payload.request);
+        setWithdrawals((current) => [payload.request!, ...current].slice(0, 20));
+      }
+
+      setBalance((current) =>
+        current
+          ? { ...current, balance: payload.balance }
+          : {
+              balance: payload.balance,
+              chain: payload.chain,
+              chainId: payload.chainId,
+              chainName: payload.chainName,
+              configured: true,
+              nativeSymbol: payload.nativeSymbol,
+              wallet: payload.wallet,
+            },
+      );
+      setWithdrawAmount("");
+    } catch (error) {
+      setWithdrawError(
+        error instanceof Error
+          ? error.message
+          : "Withdrawal request could not be created.",
+      );
+    } finally {
+      setWithdrawStage("idle");
     }
   };
 
@@ -526,6 +619,170 @@ export function UsageDashboard() {
           )}
         </CardContent>
       </Card>
+
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2.5 font-serif text-base tracking-tight">
+            <StepBadge n={4} />
+            Withdraw
+          </CardTitle>
+          <CardDescription>
+            Move available prepaid {symbol} credits into a pending withdrawal
+            request. The vault admin sends the on-chain payout after review.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 text-sm">
+          {!isConnected ? (
+            <Button size="sm" variant="outline" onClick={openWalletModal}>
+              <Wallet className="size-4" aria-hidden />
+              Connect wallet to withdraw
+            </Button>
+          ) : !balance ? (
+            <div className="flex flex-col items-start gap-2">
+              <span className="text-muted-foreground">
+                Load your credit balance before creating a withdrawal request.
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={loadBalance}
+                disabled={isBalanceLoading}
+              >
+                {isBalanceLoading ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                ) : (
+                  <ShieldCheck className="size-4" aria-hidden />
+                )}
+                {isBalanceLoading ? "Signing…" : "Load balance"}
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)_auto] sm:items-end">
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">
+                    Amount ({symbol})
+                  </span>
+                  <Input
+                    inputMode="decimal"
+                    placeholder="0.05"
+                    value={withdrawAmount}
+                    onChange={(event) => setWithdrawAmount(event.target.value)}
+                    disabled={isWithdrawing}
+                    aria-invalid={
+                      withdrawAmount.length > 0 && withdrawMist === null
+                    }
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">Recipient</span>
+                  <Input
+                    spellCheck={false}
+                    value={withdrawRecipientValue}
+                    onChange={(event) => setWithdrawRecipient(event.target.value)}
+                    disabled={isWithdrawing}
+                  />
+                </label>
+                <Button onClick={handleWithdrawRequest} disabled={!canWithdraw}>
+                  {isWithdrawing ? (
+                    <Loader2 className="size-4 animate-spin" aria-hidden />
+                  ) : (
+                    <ArrowDownToLine className="size-4" aria-hidden />
+                  )}
+                  {isWithdrawing ? "Requesting…" : "Request withdraw"}
+                </Button>
+              </div>
+
+              <div className="grid gap-1.5 rounded-md border bg-muted/30 p-3 text-xs">
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Available credits</span>
+                  <span className="font-medium">
+                    {nativeAmount(balance.balance.availableNative, symbol)}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Pending reserved</span>
+                  <span>
+                    {nativeAmount(balance.balance.reservedNative, symbol)}
+                  </span>
+                </div>
+              </div>
+
+              {withdrawAmount.length > 0 && withdrawMist === null && (
+                <span className="text-xs text-destructive">
+                  Enter a positive {symbol} amount with at most {SUI_DECIMALS}{" "}
+                  decimals.
+                </span>
+              )}
+              {withdrawRecipientValue && !normalizedWithdrawRecipient && (
+                <span className="text-xs text-destructive">
+                  Enter a valid Sui recipient address.
+                </span>
+              )}
+              {hasKnownInsufficientWithdrawBalance && (
+                <span className="text-xs text-destructive">
+                  Amount exceeds your available prepaid {symbol} credits.
+                </span>
+              )}
+              {withdrawError && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-destructive">
+                  {withdrawError}
+                </div>
+              )}
+              {withdrawResult && (
+                <div className="rounded-lg border border-success-foreground/25 bg-success/20 p-3">
+                  <span className="flex items-center gap-1.5 font-medium text-success-foreground">
+                    <Clock3 className="size-4" aria-hidden />
+                    Withdrawal request pending for{" "}
+                    {nativeAmount(withdrawResult.amountNative, symbol)}
+                  </span>
+                </div>
+              )}
+
+              {withdrawals.length > 0 && (
+                <div className="grid gap-2 border-t pt-3">
+                  <span className="text-muted-foreground text-xs">
+                    Recent withdrawal requests
+                  </span>
+                  <div className="grid gap-2">
+                    {withdrawals.slice(0, 5).map((item) => (
+                      <div
+                        className="grid gap-1 rounded-md border bg-background/60 p-3 text-xs sm:grid-cols-[1fr_auto] sm:items-center"
+                        key={item.id}
+                      >
+                        <div className="grid gap-1">
+                          <span className="font-medium">
+                            {nativeAmount(item.amountNative, symbol)}
+                          </span>
+                          <span className="break-all font-mono text-muted-foreground">
+                            {item.recipient}
+                          </span>
+                          {item.txHash && (
+                            <a
+                              className="break-all font-mono text-primary hover:underline"
+                              href={suiVisionTx(chain.explorerUrl, item.txHash)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {item.txHash} ↗
+                            </a>
+                          )}
+                          {item.rejectionReason && (
+                            <span className="text-destructive">
+                              {item.rejectionReason}
+                            </span>
+                          )}
+                        </div>
+                        <WithdrawalStatus status={item.status} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -538,6 +795,28 @@ function StepBadge({ n }: { n: number }) {
       className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 font-mono font-semibold text-primary text-xs"
     >
       {n}
+    </span>
+  );
+}
+
+function WithdrawalStatus({
+  status,
+}: {
+  status: UsageWithdrawalRequest["status"];
+}) {
+  const icon =
+    status === "completed" ? (
+      <Check className="size-3.5" aria-hidden />
+    ) : status === "rejected" ? (
+      <XCircle className="size-3.5" aria-hidden />
+    ) : (
+      <Clock3 className="size-3.5" aria-hidden />
+    );
+
+  return (
+    <span className="inline-flex w-fit items-center gap-1 rounded-md border px-2 py-1 font-medium capitalize">
+      {icon}
+      {status}
     </span>
   );
 }

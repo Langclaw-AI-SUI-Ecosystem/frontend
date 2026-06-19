@@ -33,7 +33,10 @@ import { resolveProductChain } from "@/lib/chains";
 import {
   getUsageVaultAdminStatus,
   getUsageVaultInfo,
+  listPendingUsageWithdrawals,
+  rejectUsageWithdrawal,
   verifyUsageVaultWithdrawal,
+  type UsageWithdrawalRequest,
 } from "@/lib/langclaw-api";
 import { useQuery } from "@tanstack/react-query";
 
@@ -136,6 +139,8 @@ export function AdminWithdrawDashboard() {
   const [digest, setDigest] = useState("");
   const [error, setError] = useState("");
   const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [rejectingRequestId, setRejectingRequestId] = useState("");
+  const [selectedRequestId, setSelectedRequestId] = useState("");
   const accountChains = currentAccount?.chains ?? [];
   const supportsProductNetwork =
     accountChains.length === 0 ||
@@ -161,6 +166,16 @@ export function AdminWithdrawDashboard() {
     queryFn: () => getUsageVaultInfo(chain.id),
   });
 
+  const pendingWithdrawalsQuery = useQuery({
+    queryKey: ["usage-vault-withdrawal-requests", chain.id, address],
+    enabled: isAuthorized,
+    queryFn: async () => {
+      const wallet = await getWalletAuth({ chain: chain.id });
+
+      return listPendingUsageWithdrawals(wallet, chain.id);
+    },
+  });
+
   const vault = vaultQuery.data;
   const effectiveRecipient = recipientInput || address || "";
   const adminCapObjectId = normalizeSuiHex(
@@ -173,6 +188,10 @@ export function AdminWithdrawDashboard() {
     : "";
   const normalizedRecipient = normalizeSuiHex(effectiveRecipient);
   const mist = suiToMist(amount);
+  const pendingRequests = pendingWithdrawalsQuery.data?.requests ?? [];
+  const selectedRequest = pendingRequests.find(
+    (request) => request.id === selectedRequestId,
+  );
 
   const vaultObjectQuery = useSuiClientQuery(
     "getObject",
@@ -264,10 +283,13 @@ export function AdminWithdrawDashboard() {
           amountMist: mist.toString(),
           chain: chain.id,
           recipient: normalizedRecipient,
+          requestId: selectedRequestId || undefined,
           txHash: result.digest,
           wallet,
         });
         toast.success("Vault withdrawal submitted and logged");
+        setSelectedRequestId("");
+        void pendingWithdrawalsQuery.refetch();
       } catch (auditError) {
         const auditMessage =
           auditError instanceof Error
@@ -289,6 +311,43 @@ export function AdminWithdrawDashboard() {
       toast.error(message);
     } finally {
       setIsWithdrawing(false);
+    }
+  };
+
+  const loadRequest = (request: UsageWithdrawalRequest) => {
+    setSelectedRequestId(request.id);
+    setAmount(request.amountNative);
+    setRecipientInput(request.recipient);
+    setError("");
+    setDigest("");
+  };
+
+  const handleRejectRequest = async (requestId: string) => {
+    setError("");
+    setRejectingRequestId(requestId);
+
+    try {
+      const wallet = await getWalletAuth({ chain: chain.id });
+      await rejectUsageWithdrawal({
+        chain: chain.id,
+        reason: "Rejected by vault admin.",
+        requestId,
+        wallet,
+      });
+      toast.success("Withdrawal request rejected and balance refunded");
+      if (selectedRequestId === requestId) {
+        setSelectedRequestId("");
+      }
+      await pendingWithdrawalsQuery.refetch();
+    } catch (rejectError) {
+      const message =
+        rejectError instanceof Error
+          ? rejectError.message
+          : "Withdrawal request rejection failed.";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setRejectingRequestId("");
     }
   };
 
@@ -317,7 +376,8 @@ export function AdminWithdrawDashboard() {
           </CardTitle>
           <CardDescription>
             Send pooled SUI from the shared usage vault to a recipient wallet.
-            This does not change user credit rows in Supabase.
+            Loading a pending user request completes a credit withdrawal after
+            the on-chain transaction is verified.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 text-sm">
@@ -363,6 +423,19 @@ export function AdminWithdrawDashboard() {
               <span className="font-mono">{shortAddress(adminCapOwner)}</span>
             </div>
           </div>
+
+          {selectedRequest && (
+            <Alert>
+              <ShieldCheck className="size-4" />
+              <AlertTitle>Pending request loaded</AlertTitle>
+              <AlertDescription>
+                {shortAddress(selectedRequest.wallet)} requested{" "}
+                {selectedRequest.amountNative} to{" "}
+                {shortAddress(selectedRequest.recipient)}. The verify step will
+                mark this request completed.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {amount.length > 0 && mist === null && (
             <span className="text-xs text-destructive">
@@ -412,6 +485,89 @@ export function AdminWithdrawDashboard() {
             )}
             Withdraw
           </Button>
+
+          <div className="grid gap-2 border-t pt-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-medium text-sm">Pending requests</span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void pendingWithdrawalsQuery.refetch()}
+                disabled={pendingWithdrawalsQuery.isFetching}
+              >
+                {pendingWithdrawalsQuery.isFetching ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                ) : (
+                  <ShieldCheck className="size-4" aria-hidden />
+                )}
+                Refresh
+              </Button>
+            </div>
+            {pendingWithdrawalsQuery.isLoading ? (
+              <span className="text-muted-foreground text-xs">
+                Loading pending requests…
+              </span>
+            ) : pendingRequests.length === 0 ? (
+              <span className="text-muted-foreground text-xs">
+                No pending withdrawal requests.
+              </span>
+            ) : (
+              <div className="grid gap-2">
+                {pendingRequests.map((request) => (
+                  <div
+                    className="grid gap-2 rounded-md border bg-background/60 p-3 text-xs"
+                    key={request.id}
+                  >
+                    <div className="grid gap-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-medium">
+                          {request.amountNative || `0 ${symbol}`}
+                        </span>
+                        <Badge
+                          variant={
+                            selectedRequestId === request.id
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {selectedRequestId === request.id ? "Loaded" : request.status}
+                        </Badge>
+                      </div>
+                      <span className="break-all font-mono text-muted-foreground">
+                        From {request.wallet}
+                      </span>
+                      <span className="break-all font-mono text-muted-foreground">
+                        To {request.recipient}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => loadRequest(request)}
+                        disabled={isWithdrawing}
+                      >
+                        Load
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => void handleRejectRequest(request.id)}
+                        disabled={
+                          isWithdrawing || rejectingRequestId === request.id
+                        }
+                      >
+                        {rejectingRequestId === request.id && (
+                          <Loader2 className="size-4 animate-spin" aria-hidden />
+                        )}
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 

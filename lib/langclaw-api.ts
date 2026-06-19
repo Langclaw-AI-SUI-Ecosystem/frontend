@@ -1071,6 +1071,40 @@ export type UsageWithdrawRequestPayload = {
   functionName: "withdraw";
   balance: UsageBalance;
   note: string;
+  recipient?: string;
+  request?: UsageWithdrawalRequest;
+};
+
+export type UsageWithdrawalRequest = {
+  id: string;
+  amountNeuron: string;
+  amountNative: string;
+  balanceBefore: string;
+  balanceBeforeNative: string;
+  balanceAfter: string;
+  balanceAfterNative: string;
+  chain?: ProductChainId;
+  chainId?: number;
+  completedAt?: string | null;
+  createdAt: string;
+  nativeSymbol?: string;
+  recipient: string;
+  rejectedAt?: string | null;
+  rejectionReason?: string | null;
+  status: "pending" | "completed" | "rejected";
+  txHash?: string | null;
+  wallet: string;
+};
+
+export type UsageWithdrawalRequestsPayload = {
+  adminWallet?: string;
+  chain?: ProductChainId;
+  chainId?: number;
+  chainName?: string;
+  configured: true;
+  nativeSymbol?: string;
+  requests: UsageWithdrawalRequest[];
+  wallet?: string;
 };
 
 export type UsageVaultInfoPayload = {
@@ -1127,8 +1161,26 @@ export type UsageVaultWithdrawalVerifyPayload = {
   nativeSymbol?: string;
   recorded: true;
   recipient: string;
+  request?: {
+    completedAt: string;
+    requestId: string;
+    status: "pending" | "completed" | "rejected";
+  };
   txHash: string;
   wallet: string;
+};
+
+export type UsageWithdrawalRejectPayload = {
+  balanceAfterRefundNative: string;
+  balanceAfterRefundNeuron: string;
+  chain?: ProductChainId;
+  chainId?: number;
+  chainName?: string;
+  configured: true;
+  nativeSymbol?: string;
+  rejectedAt: string;
+  requestId: string;
+  status: "pending" | "completed" | "rejected";
 };
 
 export type ProofDecision = {
@@ -2160,6 +2212,7 @@ export async function verifyUsageVaultWithdrawal(input: {
   amountMist: string;
   chain?: ProductChainId;
   recipient: string;
+  requestId?: string;
   txHash: string;
   wallet: WalletAuth;
 }) {
@@ -2170,11 +2223,52 @@ export async function verifyUsageVaultWithdrawal(input: {
 
 export async function requestUsageWithdraw(
   wallet: WalletAuth,
-  chain?: ProductChainId
+  chain?: ProductChainId,
+  input?: {
+    amountMist?: string;
+    recipient?: string;
+  },
 ) {
-  const response = await postJson("/api/usage/withdraw/request", { chain, wallet });
+  const response = await postJson("/api/usage/withdraw/request", {
+    amountMist: input?.amountMist,
+    chain,
+    recipient: input?.recipient,
+    wallet,
+  });
 
   return readJsonResponse<UsageWithdrawRequestPayload>(response);
+}
+
+export async function listUsageWithdrawals(
+  wallet: WalletAuth,
+  chain?: ProductChainId,
+) {
+  const response = await postJson("/api/usage/withdrawals", { chain, wallet });
+
+  return readJsonResponse<UsageWithdrawalRequestsPayload>(response);
+}
+
+export async function listPendingUsageWithdrawals(
+  wallet: WalletAuth,
+  chain?: ProductChainId,
+) {
+  const response = await postJson("/api/admin/usage-vault/withdrawals/pending", {
+    chain,
+    wallet,
+  });
+
+  return readJsonResponse<UsageWithdrawalRequestsPayload>(response);
+}
+
+export async function rejectUsageWithdrawal(input: {
+  chain?: ProductChainId;
+  reason?: string;
+  requestId: string;
+  wallet: WalletAuth;
+}) {
+  const response = await postJson("/api/admin/usage-vault/withdrawals/reject", input);
+
+  return readJsonResponse<UsageWithdrawalRejectPayload>(response);
 }
 
 export async function listProofDecisions(limit = 20, chain?: ProductChainId) {
