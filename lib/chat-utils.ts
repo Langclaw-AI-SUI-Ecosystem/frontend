@@ -204,8 +204,13 @@ export function buildDirectAnswerContent(payload: DirectChatPayload) {
 
 export function buildDiscoverAnswerContent(payload: DiscoverPayload) {
   const finalAnswer = payload.finalAnswer;
+
+  if (finalAnswer.answerMarkdown?.trim()) {
+    return normalizeMarkdownText(finalAnswer.answerMarkdown);
+  }
+
   const title = finalAnswer.title || payload.report?.title || "Langclaw result";
-  const answer = finalAnswer.answerMarkdown || finalAnswer.answer;
+  const answer = finalAnswer.answer;
   const lines = [
     `## ${title}`,
     "",
