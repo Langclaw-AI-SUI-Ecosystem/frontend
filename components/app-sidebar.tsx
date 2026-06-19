@@ -17,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSkeleton,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Cable,
@@ -146,6 +147,7 @@ export function AppSidebar() {
   const address = account?.address;
   const isConnected = Boolean(account);
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
   const { getWalletAuth, openWalletModal } = useWalletSession();
   // const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -181,6 +183,13 @@ export function AppSidebar() {
     () => sessions.filter((session) => !session.pinned),
     [sessions],
   );
+  const closeMobileSidebar = useCallback(() => {
+    setOpenMobile(false);
+  }, [setOpenMobile]);
+
+  useEffect(() => {
+    closeMobileSidebar();
+  }, [closeMobileSidebar, pathname]);
 
   const refreshSessions = useCallback(async () => {
     if (!isConnected || !address) {
@@ -342,8 +351,9 @@ export function AppSidebar() {
   // }
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b p-3">
+    <>
+      <Sidebar>
+        <SidebarHeader className="border-b p-3">
         <Link
           aria-label="Langclaw home"
           className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-sidebar-accent"
@@ -376,7 +386,11 @@ export function AppSidebar() {
           </p>
         </div>
         <SidebarMenu className="mt-1">
-          <SidebarNavItems items={workspaceNavItems} pathname={pathname} />
+          <SidebarNavItems
+            items={workspaceNavItems}
+            onNavigate={closeMobileSidebar}
+            pathname={pathname}
+          />
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="px-1 py-2">
@@ -384,7 +398,11 @@ export function AppSidebar() {
           <SidebarGroupLabel>System</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarNavItems items={systemNavItems} pathname={pathname} />
+              <SidebarNavItems
+                items={systemNavItems}
+                onNavigate={closeMobileSidebar}
+                pathname={pathname}
+              />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -409,6 +427,7 @@ export function AppSidebar() {
                     }
                     isLoading={isLoadingSessions}
                     onDeleteRequest={setDeleteTarget}
+                    onNavigate={closeMobileSidebar}
                     onRenameRequest={openRenameDialog}
                     onTogglePinned={handleTogglePinned}
                     pathname={pathname}
@@ -440,6 +459,7 @@ export function AppSidebar() {
                     }
                     isLoading={isLoadingSessions}
                     onDeleteRequest={setDeleteTarget}
+                    onNavigate={closeMobileSidebar}
                     onRenameRequest={openRenameDialog}
                     onTogglePinned={handleTogglePinned}
                     pathname={pathname}
@@ -526,7 +546,8 @@ export function AppSidebar() {
             </Button>
           </SidebarMenu>
         )}
-      </SidebarFooter>
+        </SidebarFooter>
+      </Sidebar>
       <Dialog
         onOpenChange={(open) => {
           if (!open) {
@@ -599,15 +620,17 @@ export function AppSidebar() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Sidebar>
+    </>
   );
 }
 
 function SidebarNavItems({
   items,
+  onNavigate,
   pathname,
 }: {
   items: SidebarNavItem[];
+  onNavigate: () => void;
   pathname: string;
 }) {
   return items.map((item) => {
@@ -622,7 +645,10 @@ function SidebarNavItems({
           isActive={isActive}
           tooltip={item.label}
         >
-          <Link href={item.href}>
+          <Link
+            href={item.href}
+            onClick={() => window.setTimeout(onNavigate, 0)}
+          >
             <Icon />
             <span>{item.label}</span>
           </Link>
@@ -636,6 +662,7 @@ function SessionMenuItems({
   emptyLabel,
   isLoading,
   onDeleteRequest,
+  onNavigate,
   onRenameRequest,
   onTogglePinned,
   pathname,
@@ -644,6 +671,7 @@ function SessionMenuItems({
   emptyLabel: string;
   isLoading: boolean;
   onDeleteRequest: (session: ChatSession) => void;
+  onNavigate: () => void;
   onRenameRequest: (session: ChatSession) => void;
   onTogglePinned: (session: ChatSession) => Promise<void>;
   pathname: string;
@@ -676,7 +704,10 @@ function SessionMenuItems({
         isActive={pathname === `/chat/${session.id}`}
         tooltip={session.title}
       >
-        <Link href={`/chat/${session.id}`}>
+        <Link
+          href={`/chat/${session.id}`}
+          onClick={() => window.setTimeout(onNavigate, 0)}
+        >
           <MessagesSquare />
           <span>{session.title}</span>
         </Link>

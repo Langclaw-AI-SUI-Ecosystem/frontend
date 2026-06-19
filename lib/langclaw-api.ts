@@ -799,6 +799,7 @@ export type MemoryStats = {
   disabled: number;
   projectScoped: number;
   total: number;
+  verifiable: number;
 };
 
 export type MemorySettings = {
@@ -1746,13 +1747,20 @@ export async function revokeApiKey(wallet: WalletAuth, keyId: string) {
 
 export async function getMemoryDashboard(wallet: WalletAuth) {
   const response = await memoryRequest({ action: "list", wallet });
+  const memories = response.memories ?? [];
+  const verifiableMemories = response.verifiableMemories ?? [];
+  const fallbackStats = buildMemoryStats(memories, verifiableMemories.length);
 
   return {
     configured: true,
-    memories: response.memories ?? [],
+    memories,
     settings: requireMemorySettings(response.settings),
-    stats: response.stats ?? buildMemoryStats(response.memories ?? []),
-    verifiableMemories: response.verifiableMemories ?? [],
+    stats: {
+      ...fallbackStats,
+      ...response.stats,
+      verifiable: response.stats?.verifiable ?? verifiableMemories.length,
+    },
+    verifiableMemories,
   } satisfies MemoryDashboard;
 }
 
@@ -2386,12 +2394,16 @@ function requireMemorySettings(settings?: MemorySettings) {
   return settings;
 }
 
-function buildMemoryStats(memories: MemoryItem[]): MemoryStats {
+function buildMemoryStats(
+  memories: MemoryItem[],
+  verifiable = 0,
+): MemoryStats {
   return {
     active: memories.filter((memory) => memory.status === "active").length,
     disabled: memories.filter((memory) => memory.status === "disabled").length,
     projectScoped: memories.filter((memory) => memory.scope !== "Global").length,
     total: memories.length,
+    verifiable,
   };
 }
 

@@ -8,6 +8,7 @@ import {
   ExternalLink,
   Loader2,
   LockKeyhole,
+  NotebookText,
   RefreshCw,
   ShieldCheck,
   ToggleLeft,
@@ -50,17 +51,24 @@ export default function Page() {
   const [loading, setLoading] = useState("");
 
   const stats = useMemo(
-    () => backendStats ?? buildMemoryStats(memories),
-    [backendStats, memories],
+    () =>
+      backendStats ?? buildMemoryStats(memories, verifiableMemories.length),
+    [backendStats, memories, verifiableMemories.length],
   );
 
   const statCards = useMemo(
     () => [
       {
-        label: "Total memories",
-        value: stats.total,
-        description: "Captured across chats",
+        label: "Walrus records",
+        value: stats.verifiable,
+        description: "Encrypted research proofs",
         icon: Database,
+      },
+      {
+        label: "Recall notes",
+        value: stats.total,
+        description: "Reusable across chats",
+        icon: NotebookText,
       },
       {
         label: "Active",
@@ -284,7 +292,7 @@ export default function Page() {
         </Alert>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {statCards.map((stat) => {
           const Icon = stat.icon;
 
@@ -422,11 +430,15 @@ function ProofValue({ label, value }: { label: string; value: string }) {
   );
 }
 
-function buildMemoryStats(memories: MemoryItem[]): MemoryStats {
+function buildMemoryStats(
+  memories: MemoryItem[],
+  verifiable = 0,
+): MemoryStats {
   return {
     active: memories.filter((memory) => memory.status === "active").length,
     disabled: memories.filter((memory) => memory.status === "disabled").length,
     projectScoped: memories.filter((memory) => memory.scope !== "Global").length,
     total: memories.length,
+    verifiable,
   };
 }
