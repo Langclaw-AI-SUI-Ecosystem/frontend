@@ -20,10 +20,7 @@ export default function Header() {
           className="flex min-w-0 items-center gap-3"
           href="/"
         >
-          <LangclawLogo
-            className="size-9 shrink-0 rounded-md ring-1 ring-border/70"
-            imageClassName="left-[315%] h-[320px] w-[320px]"
-          />
+          <LangclawLogo className="size-9 shrink-0 rounded-md ring-1 ring-border/70" />
           <span className="min-w-0">
             <span className="block font-semibold text-base leading-5">
               Langclaw
