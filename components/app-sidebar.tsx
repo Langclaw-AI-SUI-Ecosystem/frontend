@@ -359,10 +359,7 @@ export function AppSidebar() {
           className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-sidebar-accent"
           href="/"
         >
-          <LangclawLogo
-            className="size-9 shrink-0 rounded-md ring-1 ring-sidebar-border"
-            imageClassName="left-[315%] h-[320px] w-[320px]"
-          />
+          <LangclawLogo className="size-9 shrink-0 rounded-md ring-1 ring-sidebar-border" />
           <span className="min-w-0">
             <span className="block truncate text-sm font-semibold leading-5">
               Langclaw

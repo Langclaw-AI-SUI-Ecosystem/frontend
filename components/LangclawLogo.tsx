@@ -1,34 +1,30 @@
-import Image from "next/image";
-
-import { LANGCLAW_LOGO_URL } from "@/lib/brand-assets";
 import { cn } from "@/lib/utils";
 
 type LangclawLogoProps = {
   className?: string;
-  imageClassName?: string;
 };
 
-export function LangclawLogo({
-  className,
-  imageClassName,
-}: LangclawLogoProps) {
+const CLAW_POINTS = [
+  "9,88 9,55 18,43 27,55 27,88",
+  "41,88 41,40 50,28 59,40 59,88",
+  "73,88 73,25 82,13 91,25 91,88",
+];
+
+export function LangclawLogo({ className }: LangclawLogoProps) {
   return (
-    <span
+    <svg
       aria-hidden="true"
-      className={cn("relative block overflow-hidden bg-white", className)}
+      className={cn("block size-9", className)}
+      fill="none"
+      viewBox="0 0 512 512"
+      xmlns="http://www.w3.org/2000/svg"
     >
-      <Image
-        alt=""
-        className={cn(
-          "absolute top-1/2 left-1/2 h-[168px] w-[168px] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain",
-          imageClassName,
-        )}
-        decoding="async"
-        draggable={false}
-        height={168}
-        src={LANGCLAW_LOGO_URL}
-        width={168}
-      />
-    </span>
+      <rect fill="#3b82f6" height="512" rx="105" width="512" />
+      <g fill="#ffffff" transform="translate(68.68,66.81) scale(3.7463)">
+        {CLAW_POINTS.map((points) => (
+          <polygon key={points} points={points} />
+        ))}
+      </g>
+    </svg>
   );
 }
