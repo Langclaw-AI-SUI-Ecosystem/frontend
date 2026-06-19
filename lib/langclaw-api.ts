@@ -1071,8 +1071,14 @@ export type UsageWithdrawRequestPayload = {
   functionName: "withdraw";
   balance: UsageBalance;
   note: string;
+  pendingWithdrawalNative?: string;
+  pendingWithdrawalNeuron?: string;
   recipient?: string;
   request?: UsageWithdrawalRequest;
+  vaultBalanceNative?: string;
+  vaultBalanceNeuron?: string;
+  withdrawableNative?: string;
+  withdrawableNeuron?: string;
 };
 
 export type UsageWithdrawalRequest = {
@@ -2212,7 +2218,7 @@ export async function verifyUsageVaultWithdrawal(input: {
   amountMist: string;
   chain?: ProductChainId;
   recipient: string;
-  requestId?: string;
+  requestId: string;
   txHash: string;
   wallet: WalletAuth;
 }) {

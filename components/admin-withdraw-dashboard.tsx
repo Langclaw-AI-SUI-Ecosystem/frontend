@@ -177,7 +177,7 @@ export function AdminWithdrawDashboard() {
   });
 
   const vault = vaultQuery.data;
-  const effectiveRecipient = recipientInput || address || "";
+  const effectiveRecipient = recipientInput;
   const adminCapObjectId = normalizeSuiHex(
     vault?.adminCapObjectId ?? adminStatus?.adminCapObjectId ?? "",
   );
@@ -205,9 +205,15 @@ export function AdminWithdrawDashboard() {
     : null;
   const amountExceedsVault =
     mist !== null && vaultBalanceMist !== null && mist > vaultBalanceMist;
+  const matchesSelectedRequest =
+    selectedRequest !== undefined &&
+    mist !== null &&
+    mist.toString() === selectedRequest.amountNeuron &&
+    normalizedRecipient === normalizeSuiHex(selectedRequest.recipient);
   const canWithdraw =
     isAuthorized &&
     supportsProductNetwork &&
+    matchesSelectedRequest &&
     Boolean(withdrawTarget && vaultObjectId && adminCapObjectId) &&
     Boolean(normalizedRecipient) &&
     vaultBalanceMist !== null &&
@@ -253,7 +259,13 @@ export function AdminWithdrawDashboard() {
   };
 
   const handleWithdraw = async () => {
-    if (!canWithdraw || !adminCapObjectId || !mist || !normalizedRecipient) {
+    if (
+      !canWithdraw ||
+      !adminCapObjectId ||
+      !mist ||
+      !normalizedRecipient ||
+      !selectedRequest
+    ) {
       return;
     }
 
@@ -283,12 +295,13 @@ export function AdminWithdrawDashboard() {
           amountMist: mist.toString(),
           chain: chain.id,
           recipient: normalizedRecipient,
-          requestId: selectedRequestId || undefined,
+          requestId: selectedRequest.id,
           txHash: result.digest,
           wallet,
         });
         toast.success("Vault withdrawal submitted and logged");
         setSelectedRequestId("");
+        setRecipientInput("");
         void pendingWithdrawalsQuery.refetch();
       } catch (auditError) {
         const auditMessage =
@@ -337,6 +350,8 @@ export function AdminWithdrawDashboard() {
       toast.success("Withdrawal request rejected and balance refunded");
       if (selectedRequestId === requestId) {
         setSelectedRequestId("");
+        setAmount("");
+        setRecipientInput("");
       }
       await pendingWithdrawalsQuery.refetch();
     } catch (rejectError) {
@@ -390,8 +405,8 @@ export function AdminWithdrawDashboard() {
                 inputMode="decimal"
                 placeholder="0.1"
                 value={amount}
-                onChange={(event) => setAmount(event.target.value)}
-                disabled={isWithdrawing}
+                readOnly
+                disabled={isWithdrawing || !selectedRequest}
               />
             </label>
             <label className="flex flex-col gap-1">
@@ -399,8 +414,8 @@ export function AdminWithdrawDashboard() {
               <Input
                 spellCheck={false}
                 value={effectiveRecipient}
-                onChange={(event) => setRecipientInput(event.target.value)}
-                disabled={isWithdrawing}
+                readOnly
+                disabled={isWithdrawing || !selectedRequest}
               />
             </label>
           </div>

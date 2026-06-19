@@ -38,6 +38,7 @@ import {
   requestUsageWithdraw,
   verifyUsageDeposit,
   type UsageBalancePayload,
+  type UsageWithdrawRequestPayload,
   type UsageWithdrawalRequest,
 } from "@/lib/langclaw-api";
 
@@ -147,6 +148,8 @@ export function UsageDashboard() {
   const [balance, setBalance] = useState<UsageBalancePayload | null>(null);
   const [isBalanceLoading, setIsBalanceLoading] = useState(false);
   const [balanceError, setBalanceError] = useState<string | null>(null);
+  const [withdrawAvailability, setWithdrawAvailability] =
+    useState<UsageWithdrawRequestPayload | null>(null);
   const [withdrawals, setWithdrawals] = useState<UsageWithdrawalRequest[]>([]);
 
   const loadBalance = async () => {
@@ -154,12 +157,15 @@ export function UsageDashboard() {
     setIsBalanceLoading(true);
     try {
       const auth = await getWalletAuth();
-      const [nextBalance, nextWithdrawals] = await Promise.all([
-        getUsageBalance(auth),
-        listUsageWithdrawals(auth).catch(() => ({ requests: [] })),
-      ]);
+      const [nextBalance, nextWithdrawals, nextWithdrawAvailability] =
+        await Promise.all([
+          getUsageBalance(auth),
+          listUsageWithdrawals(auth).catch(() => ({ requests: [] })),
+          requestUsageWithdraw(auth, chain.id),
+        ]);
       setBalance(nextBalance);
       setWithdrawals(nextWithdrawals.requests ?? []);
+      setWithdrawAvailability(nextWithdrawAvailability);
     } catch (error) {
       setBalanceError(
         error instanceof Error ? error.message : "Could not load balance.",
@@ -201,14 +207,16 @@ export function UsageDashboard() {
     walletBalanceMist !== null &&
     requiredMist !== null &&
     walletBalanceMist < requiredMist;
-  const availableCreditMist = readMist(balance?.balance.availableNeuron);
+  const availableToWithdrawMist = readMist(
+    withdrawAvailability?.withdrawableNeuron,
+  );
   const withdrawMist = suiToMist(withdrawAmount);
   const withdrawRecipientValue = withdrawRecipient.trim() || address || "";
   const normalizedWithdrawRecipient = readSuiAddress(withdrawRecipientValue);
   const hasKnownInsufficientWithdrawBalance =
-    availableCreditMist !== null &&
+    availableToWithdrawMist !== null &&
     withdrawMist !== null &&
-    withdrawMist > availableCreditMist;
+    withdrawMist > availableToWithdrawMist;
 
   const isDepositing = depositStage !== "idle";
   const isWithdrawing = withdrawStage !== "idle";
@@ -222,6 +230,7 @@ export function UsageDashboard() {
   const canWithdraw =
     isConnected &&
     Boolean(balance) &&
+    availableToWithdrawMist !== null &&
     withdrawMist !== null &&
     Boolean(normalizedWithdrawRecipient) &&
     !hasKnownInsufficientWithdrawBalance &&
@@ -320,6 +329,7 @@ export function UsageDashboard() {
         setWithdrawResult(payload.request);
         setWithdrawals((current) => [payload.request!, ...current].slice(0, 20));
       }
+      setWithdrawAvailability(payload);
 
       setBalance((current) =>
         current
@@ -701,6 +711,17 @@ export function UsageDashboard() {
                   </span>
                 </div>
                 <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">
+                    Available to withdraw
+                  </span>
+                  <span className="font-medium">
+                    {nativeAmount(
+                      withdrawAvailability?.withdrawableNative,
+                      symbol,
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-4">
                   <span className="text-muted-foreground">Pending reserved</span>
                   <span>
                     {nativeAmount(balance.balance.reservedNative, symbol)}
@@ -721,7 +742,7 @@ export function UsageDashboard() {
               )}
               {hasKnownInsufficientWithdrawBalance && (
                 <span className="text-xs text-destructive">
-                  Amount exceeds your available prepaid {symbol} credits.
+                  Amount exceeds the available vault liquidity.
                 </span>
               )}
               {withdrawError && (
