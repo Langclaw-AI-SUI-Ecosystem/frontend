@@ -28,7 +28,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Streamdown } from "streamdown";
+import { Streamdown, type Components } from "streamdown";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
   from: UIMessage["role"];
@@ -322,9 +322,12 @@ export const MessageBranchPage = ({
 export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 
 const streamdownPlugins = { cjk, code, math, mermaid };
+const safeMarkdownComponents: Components = {
+  img: SafeMarkdownImage,
+};
 
 export const MessageResponse = memo(
-  ({ className, ...props }: MessageResponseProps) => (
+  ({ className, components, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn(
         "size-full leading-7 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
@@ -336,6 +339,11 @@ export const MessageResponse = memo(
         "[&_blockquote]:border-primary/30 [&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground [&_blockquote]:italic",
         className
       )}
+      components={
+        components
+          ? { ...components, img: SafeMarkdownImage }
+          : safeMarkdownComponents
+      }
       plugins={streamdownPlugins}
       {...props}
     />
@@ -346,6 +354,24 @@ export const MessageResponse = memo(
 );
 
 MessageResponse.displayName = "MessageResponse";
+
+function SafeMarkdownImage({
+  alt,
+  src,
+}: ComponentProps<"img"> & { node?: unknown }) {
+  const href = typeof src === "string" ? src : undefined;
+  const label = typeof alt === "string" && alt.trim() ? alt.trim() : "Image link";
+
+  if (!href) {
+    return null;
+  }
+
+  return (
+    <a href={href} rel="noreferrer noopener" target="_blank">
+      {label}
+    </a>
+  );
+}
 
 export type MessageToolbarProps = ComponentProps<"div">;
 

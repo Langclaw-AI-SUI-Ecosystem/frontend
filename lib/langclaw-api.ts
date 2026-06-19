@@ -2187,6 +2187,7 @@ export async function runStrategyBacktest(input: {
   chain?: ProductChainId;
   pairAddress?: string;
   queryId?: string;
+  wallet: WalletAuth;
 }) {
   const response = await postJson("/api/strategy/backtest", input);
   const payload = await readJsonResponse<StrategyBacktestResponse>(response);
@@ -2198,6 +2199,7 @@ export async function scanStrategyPairs(input: {
   chain?: ProductChainId;
   limit?: number;
   queryId?: string;
+  wallet: WalletAuth;
 }) {
   const response = await postJson("/api/strategy/scan-pairs", input);
   const payload = await readJsonResponse<StrategyScanResponse>(response);
@@ -2209,6 +2211,7 @@ export async function openStrategyPaperTrade(input: {
   chain?: ProductChainId;
   backtest: StrategyBacktestPayload;
   notionalUsd?: number;
+  wallet: WalletAuth;
 }) {
   const response = await postJson("/api/strategy/paper-trade", input);
   const payload = await readJsonResponse<StrategyPaperTradeResponse>(response);

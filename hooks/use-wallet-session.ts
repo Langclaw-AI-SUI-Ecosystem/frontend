@@ -120,9 +120,7 @@ export function useWalletSession() {
   const clearWalletAuth = useCallback(() => {
     if (address && typeof window !== "undefined") {
       for (const chain of productChainOptions) {
-        window.localStorage.removeItem(
-          getWalletAuthStorageKey(address, chain.id),
-        );
+        removeCachedWalletAuth(address, chain.id);
       }
     }
 
@@ -156,9 +154,7 @@ export function readCachedWalletAuth(
   }
 
   const chain = resolveProductChain(chainInput);
-  const raw = window.localStorage.getItem(
-    getWalletAuthStorageKey(address, chain.id),
-  );
+  const raw = readWalletAuthStorage(address, chain.id);
 
   if (!raw) {
     return null;
@@ -199,10 +195,10 @@ function writeCachedWalletAuth(walletAuth: WalletAuth, chain: ProductChainId) {
     return;
   }
 
-  window.localStorage.setItem(
-    getWalletAuthStorageKey(walletAuth.address, chain),
-    JSON.stringify(walletAuth),
-  );
+  const key = getWalletAuthStorageKey(walletAuth.address, chain);
+
+  window.sessionStorage.setItem(key, JSON.stringify(walletAuth));
+  window.localStorage.removeItem(key);
 }
 
 export function cacheWalletAuth(
@@ -217,6 +213,22 @@ export function cacheWalletAuth(
 
 function getWalletAuthStorageKey(address: string, chain: ProductChainId) {
   return `${WALLET_AUTH_STORAGE_PREFIX}:${chain}:${address.toLowerCase()}`;
+}
+
+function readWalletAuthStorage(address: string, chain: ProductChainId) {
+  const key = getWalletAuthStorageKey(address, chain);
+  const sessionValue = window.sessionStorage.getItem(key);
+
+  window.localStorage.removeItem(key);
+
+  return sessionValue;
+}
+
+function removeCachedWalletAuth(address: string, chain: ProductChainId) {
+  const key = getWalletAuthStorageKey(address, chain);
+
+  window.sessionStorage.removeItem(key);
+  window.localStorage.removeItem(key);
 }
 
 function dispatchWalletAuthUpdated() {

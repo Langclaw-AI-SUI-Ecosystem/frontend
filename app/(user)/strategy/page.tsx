@@ -74,6 +74,7 @@ import {
   productChainOptions,
   resolveProductChain,
 } from "@/lib/chains";
+import { useWalletSession } from "@/hooks/use-wallet-session";
 
 const samplePairs = [
   {
@@ -94,6 +95,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function StrategyPage() {
+  const { getWalletAuth } = useWalletSession();
   const [selectedChain, setSelectedChain] =
     useState<ProductChainId>(defaultProductChain);
   const [selectedPair, setSelectedPair] = useState(samplePairs[0].value);
@@ -208,10 +210,12 @@ export default function StrategyPage() {
     setPaperTrade(null);
 
     try {
+      const wallet = await getWalletAuth({ chain: selectedChain });
       const nextBacktest = await runStrategyBacktest({
         chain: selectedChain,
         pairAddress,
         queryId: queryId.trim() || undefined,
+        wallet,
       });
       setBacktest(nextBacktest);
       setBacktestSource("anchored");
@@ -233,10 +237,12 @@ export default function StrategyPage() {
     setPaperTrade(null);
 
     try {
+      const wallet = await getWalletAuth({ chain: selectedChain });
       const nextScan = await scanStrategyPairs({
         chain: selectedChain,
         limit: 12,
         queryId: queryId.trim() || undefined,
+        wallet,
       });
       setPairScan(nextScan);
       setBacktest(nextScan.bestBacktest);
@@ -288,10 +294,12 @@ export default function StrategyPage() {
     setError("");
 
     try {
+      const wallet = await getWalletAuth({ chain: selectedChain });
       const nextPaperTrade = await openStrategyPaperTrade({
         backtest,
         chain: selectedChain,
         notionalUsd: 1_000,
+        wallet,
       });
       const decisionCopy = getPaperDecisionCopy(
         nextPaperTrade.action,
