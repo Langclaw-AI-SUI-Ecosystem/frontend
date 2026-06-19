@@ -25,3 +25,13 @@ test("Chat session prompt input omits the chain selector", () => {
     "Expected the chat session prompt input to omit the chain selector.",
   );
 });
+
+test("ChatInput quick prompts automatically select Research mode", () => {
+  const source = readFileSync(chatInputPath, "utf8");
+
+  assert.ok(
+    source.includes('onSelect={() => setToolMode("research")}') &&
+      source.includes("onSelect();"),
+    "Expected every quick prompt to fill the input and select Research mode.",
+  );
+});

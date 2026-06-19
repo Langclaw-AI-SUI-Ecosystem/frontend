@@ -106,7 +106,7 @@ const researchContext = [
 
 type TranscriptionSegments = Experimental_TranscriptionResult["segments"];
 
-const ChatInputSuggestions = () => {
+const ChatInputSuggestions = ({ onSelect }: { onSelect: () => void }) => {
   const { textInput } = usePromptInputController();
 
   return (
@@ -115,7 +115,10 @@ const ChatInputSuggestions = () => {
         <Suggestion
           className="group/card h-full items-start justify-start rounded-xl border-border/70 px-4 py-3.5 shadow-xs hover:-translate-y-0.5 hover:shadow-sm"
           key={suggestion.label}
-          onClick={textInput.setInput}
+          onClick={(prompt) => {
+            textInput.setInput(prompt);
+            onSelect();
+          }}
           suggestion={suggestion.prompt}
         >
           <span className="flex w-full flex-col gap-1.5">
@@ -386,7 +389,9 @@ const ChatInput = () => {
                   Research-ready
                 </Badge>
               </div>
-              <ChatInputSuggestions />
+              <ChatInputSuggestions
+                onSelect={() => setToolMode("research")}
+              />
             </div>
           </PromptInputProvider>
 
