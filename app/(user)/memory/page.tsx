@@ -8,6 +8,7 @@ import {
   ExternalLink,
   Loader2,
   LockKeyhole,
+  NotebookText,
   RefreshCw,
   ShieldCheck,
   ToggleLeft,
@@ -50,17 +51,24 @@ export default function Page() {
   const [loading, setLoading] = useState("");
 
   const stats = useMemo(
-    () => backendStats ?? buildMemoryStats(memories),
-    [backendStats, memories],
+    () =>
+      backendStats ?? buildMemoryStats(memories, verifiableMemories.length),
+    [backendStats, memories, verifiableMemories.length],
   );
 
   const statCards = useMemo(
     () => [
       {
-        label: "Total memories",
-        value: stats.total,
-        description: "Captured across chats",
+        label: "Walrus records",
+        value: stats.verifiable,
+        description: "Encrypted research proofs",
         icon: Database,
+      },
+      {
+        label: "Recall notes",
+        value: stats.total,
+        description: "Reusable across chats",
+        icon: NotebookText,
       },
       {
         label: "Active",
@@ -241,9 +249,12 @@ export default function Page() {
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold">Memory</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
+        <div className="flex flex-col gap-3">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-accent/40 px-3 py-1 font-medium text-accent-foreground text-xs">
+            <span className="size-1.5 rounded-full bg-primary" />
+            Memory
+          </span>
+          <p className="max-w-2xl text-balance font-serif text-foreground text-xl leading-8 tracking-tight">
             Inspect private research memories stored on Walrus, protected by
             Seal, and anchored on Sui. Recall preferences remain manageable below.
           </p>
@@ -281,7 +292,7 @@ export default function Page() {
         </Alert>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {statCards.map((stat) => {
           const Icon = stat.icon;
 
@@ -295,7 +306,9 @@ export default function Page() {
                 <Icon className="size-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-semibold">{stat.value}</p>
+                <p className="font-serif font-semibold text-3xl tracking-tight">
+                  {stat.value}
+                </p>
               </CardContent>
             </Card>
           );
@@ -304,7 +317,9 @@ export default function Page() {
 
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Verifiable Walrus memory</h2>
+          <h2 className="font-serif font-semibold text-foreground text-lg tracking-tight">
+            Verifiable Walrus memory
+          </h2>
           <p className="text-sm text-muted-foreground">
             Each record links encrypted storage to its content hash and Sui proof.
           </p>
@@ -313,16 +328,31 @@ export default function Page() {
         {verifiableMemories.length ? (
           <div className="grid gap-4 lg:grid-cols-2">
             {verifiableMemories.map((memory) => (
-              <Card key={memory.id}>
+              <Card
+                className={
+                  memory.suiTxUrl
+                    ? "border-success-foreground/25 bg-success/6"
+                    : ""
+                }
+                key={memory.id}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <CardTitle className="truncate">{memory.topic}</CardTitle>
+                      <CardTitle className="truncate font-serif tracking-tight">
+                        {memory.topic}
+                      </CardTitle>
                       <CardDescription>
                         {new Date(memory.createdAt).toLocaleString()}
                       </CardDescription>
                     </div>
-                    <LockKeyhole className="size-4 shrink-0 text-emerald-500" />
+                    <LockKeyhole
+                      className={`size-4 shrink-0 ${
+                        memory.suiTxUrl
+                          ? "text-success-foreground"
+                          : "text-muted-foreground"
+                      }`}
+                    />
                   </div>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3 text-sm">
@@ -338,7 +368,12 @@ export default function Page() {
                       </Button>
                     )}
                     {memory.suiTxUrl && (
-                      <Button asChild size="sm" variant="outline">
+                      <Button
+                        asChild
+                        className="border-success-foreground/25 bg-success/20 text-success-foreground hover:bg-success/40"
+                        size="sm"
+                        variant="outline"
+                      >
                         <a href={memory.suiTxUrl} rel="noreferrer" target="_blank">
                           Verify on Sui <ExternalLink className="size-3" />
                         </a>
@@ -359,9 +394,11 @@ export default function Page() {
         )}
       </section>
 
-      <section className="flex flex-col gap-2">
+      <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Recall preferences</h2>
+          <h2 className="font-serif font-semibold text-foreground text-lg tracking-tight">
+            Recall preferences
+          </h2>
           <p className="text-sm text-muted-foreground">
             Control the account-level notes that guide future conversations.
           </p>
@@ -383,19 +420,25 @@ export default function Page() {
 function ProofValue({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid gap-1">
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <code className="overflow-hidden text-ellipsis rounded bg-muted px-2 py-1 text-xs">
+      <span className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+        {label}
+      </span>
+      <code className="overflow-hidden text-ellipsis rounded-md border border-border/60 bg-secondary/40 px-2 py-1 font-mono text-xs">
         {value}
       </code>
     </div>
   );
 }
 
-function buildMemoryStats(memories: MemoryItem[]): MemoryStats {
+function buildMemoryStats(
+  memories: MemoryItem[],
+  verifiable = 0,
+): MemoryStats {
   return {
     active: memories.filter((memory) => memory.status === "active").length,
     disabled: memories.filter((memory) => memory.status === "disabled").length,
     projectScoped: memories.filter((memory) => memory.scope !== "Global").length,
     total: memories.length,
+    verifiable,
   };
 }

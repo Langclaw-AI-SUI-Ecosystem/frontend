@@ -2,7 +2,12 @@
 
 import type { ReactNode } from "react";
 
-import { ChevronDownIcon, SearchIcon, ShieldCheckIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ExternalLinkIcon,
+  SearchIcon,
+  ShieldCheckIcon,
+} from "lucide-react";
 
 import {
   Agent,
@@ -155,6 +160,9 @@ export function DiscoverDetails({ payload }: { payload: DiscoverPayload }) {
                 ? "On-chain recorded"
                 : "Prepared"
             }
+            variant={
+              isProofAnchored(zeroG.chain.status) ? "verified" : "default"
+            }
           />
         )}
         <StatusPill label="Runtime" value={payload.orchestration.runtime} />
@@ -194,7 +202,13 @@ export function DiscoverDetails({ payload }: { payload: DiscoverPayload }) {
           <StatusPill label="Evidence bundle" value={zeroG.storage.status} />
         )}
         {zeroG?.chain.status && (
-          <StatusPill label="Agent decision proof" value={zeroG.chain.status} />
+          <StatusPill
+            label="Agent decision proof"
+            value={zeroG.chain.status}
+            variant={
+              isProofAnchored(zeroG.chain.status) ? "verified" : "default"
+            }
+          />
         )}
       </div>
 
@@ -217,7 +231,7 @@ export function DiscoverDetails({ payload }: { payload: DiscoverPayload }) {
       {payload.signals && <LiveSignalDetails payload={payload} />}
 
       {payload.sources.length > 0 && (
-        <Sources className="rounded-md border bg-background/70 p-3">
+        <Sources className="rounded-xl border border-border/70 bg-background p-4 shadow-xs">
           <SourcesTrigger count={payload.sources.length} />
           <SourcesContent>
             {payload.sources.slice(0, 8).map((source) => (
@@ -233,17 +247,19 @@ export function DiscoverDetails({ payload }: { payload: DiscoverPayload }) {
       )}
 
       {structuredReport ? (
-        <Collapsible className="rounded-md border bg-background/70">
-          <CollapsibleTrigger className="group flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/40">
+        <Collapsible className="rounded-xl border border-border/70 bg-background shadow-xs">
+          <CollapsibleTrigger className="group flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-accent/30">
             <div className="space-y-1">
-              <p className="font-medium text-foreground">Structured report</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="font-serif font-semibold text-base text-foreground tracking-tight">
+                Structured report
+              </p>
+              <p className="text-muted-foreground text-sm">
                 {structuredReport.title}
               </p>
             </div>
-            <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+            <ChevronDownIcon className="size-4 text-muted-foreground transition-transform group-hover:text-primary group-data-[state=open]:rotate-180" />
           </CollapsibleTrigger>
-          <CollapsibleContent className="border-t p-3">
+          <CollapsibleContent className="border-border/60 border-t p-4">
             <ResearchReportPanel report={structuredReport} />
           </CollapsibleContent>
         </Collapsible>
@@ -258,7 +274,7 @@ export function DiscoverDetails({ payload }: { payload: DiscoverPayload }) {
             type="dynamic-tool"
           />
           <ToolContent>
-            <div className="space-y-2 rounded-md border bg-background/70 p-3 text-sm">
+            <div className="space-y-2 rounded-lg border border-border/60 bg-secondary/20 p-3 text-sm">
               {payload.onChain ? (
                 <>
                   <div className="flex flex-wrap gap-2">
@@ -375,16 +391,39 @@ export function WorkflowPlan({ events }: { events: WorkflowProgressEvent[] }) {
 export function StatusPill({
   label,
   value,
+  variant = "default",
 }: {
   label: string;
   value: string;
+  /** "verified" = teal accent, reserved for confirmed on-Sui proof states. */
+  variant?: "default" | "verified";
 }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-md border bg-background px-2 py-1">
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs",
+        variant === "verified"
+          ? "border-success-foreground/20 bg-success/40 text-success-foreground"
+          : "border-border/70 bg-secondary/40 text-muted-foreground",
+      )}
+    >
       <span>{label}</span>
-      <span className="font-medium text-foreground">{value}</span>
+      <span
+        className={cn(
+          "font-medium",
+          variant === "verified" ? "text-success-foreground" : "text-foreground",
+        )}
+      >
+        {value}
+      </span>
     </span>
   );
+}
+
+/** True only for proof states confirmed on Sui — used to gate the teal
+ * "verified" accent so it never appears for prepared/pending/failed states. */
+function isProofAnchored(status?: string): boolean {
+  return status === "anchored" || status === "recorded";
 }
 
 /** Only allow https links through to an anchor — guards against javascript:/data:
@@ -455,9 +494,21 @@ export function WalrusMemoryDetails({ proof }: { proof: WalrusMemoryProof }) {
       : "Memory provenance · local fallback";
 
   return (
-    <div className="space-y-3 rounded-md border bg-background/70 p-3">
+    <div
+      className={cn(
+        "space-y-3 rounded-xl border bg-background p-4 shadow-xs",
+        fullyAnchored
+          ? "border-success-foreground/25 bg-success/10"
+          : "border-border/70",
+      )}
+    >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1 font-medium text-foreground">
+        <span
+          className={cn(
+            "inline-flex items-center gap-1.5 font-serif font-semibold text-base tracking-tight",
+            fullyAnchored ? "text-success-foreground" : "text-foreground",
+          )}
+        >
           <ShieldCheckIcon className="size-4" />
           {headerTitle}
         </span>
@@ -470,6 +521,7 @@ export function WalrusMemoryDetails({ proof }: { proof: WalrusMemoryProof }) {
                 ? "Walrus network"
                 : "Local fallback"
           }
+          variant={onWalrusNetwork && !storageFailed ? "verified" : "default"}
         />
         <StatusPill
           label="Encryption"
@@ -479,9 +531,13 @@ export function WalrusMemoryDetails({ proof }: { proof: WalrusMemoryProof }) {
               : "Local AES envelope"
           }
         />
-        <StatusPill label="Round-trip" value={roundTrip} />
+        <StatusPill
+          label="Round-trip"
+          value={roundTrip}
+          variant={networkVerified ? "verified" : "default"}
+        />
         {proof.registryStatus === "recorded" && (
-          <StatusPill label="Sui proof" value="Recorded" />
+          <StatusPill label="Sui proof" value="Recorded" variant="verified" />
         )}
         {proof.memWalStatus === "remembered" && (
           <StatusPill label="MemWal" value="Remembered" />
@@ -574,9 +630,11 @@ function KeySignalCitations({ payload }: { payload: DiscoverPayload }) {
   }
 
   return (
-    <div className="space-y-2 rounded-md border bg-background/70 p-3">
-      <p className="font-medium text-foreground">Key signals</p>
-      <div className="space-y-2">
+    <div className="space-y-3 rounded-xl border border-border/70 bg-background p-4 shadow-xs">
+      <p className="font-serif font-semibold text-base text-foreground tracking-tight">
+        Key signals
+      </p>
+      <div className="space-y-2.5 border-primary/20 border-l-2 pl-4">
         {signals.map((signal) => {
           const sources = getSourcesForIds(
             payload,
@@ -642,9 +700,11 @@ function LiveSignalDetails({ payload }: { payload: DiscoverPayload }) {
   }
 
   return (
-    <div className="space-y-2 rounded-md border bg-background/70 p-3">
+    <div className="space-y-3 rounded-xl border border-border/70 bg-background p-4 shadow-xs">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="font-medium text-foreground">Live signals</p>
+        <p className="font-serif font-semibold text-base text-foreground tracking-tight">
+          Live signals
+        </p>
         <StatusPill label="Combined" value={signals.combined.status} />
         <StatusPill label="Social" value={signals.social.status} />
         <StatusPill label="On-chain" value={signals.onchain.status} />
@@ -666,7 +726,7 @@ function SignalSectionCard({
   section: DiscoverSignalSection;
 }) {
   return (
-    <div className="space-y-2 rounded-md border bg-background/80 p-3 text-sm">
+    <div className="space-y-2 rounded-lg border border-border/60 bg-secondary/20 p-3 text-sm">
       <div className="flex flex-wrap items-center gap-2">
         <p className="font-medium text-foreground">{label}</p>
         <StatusPill label="Status" value={section.status} />
@@ -694,11 +754,13 @@ function SignalSectionCard({
 
 export function ResearchReportPanel({ report }: { report: ResearchReport }) {
   return (
-    <div className="space-y-3 rounded-md border bg-background/70 p-3">
+    <div className="space-y-3 rounded-xl border border-border/70 bg-background p-4 shadow-xs">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1">
-          <p className="font-medium text-foreground">{report.title}</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="font-serif font-semibold text-foreground text-lg tracking-tight">
+            {report.title}
+          </p>
+          <p className="text-muted-foreground text-sm leading-6">
             {report.executiveSummary}
           </p>
         </div>
@@ -724,12 +786,13 @@ export function ResearchReportPanel({ report }: { report: ResearchReport }) {
 
             return (
               <div
-                className="space-y-2 rounded-md border bg-background/80 p-3 text-sm"
+                className="space-y-2 rounded-lg border border-border/60 bg-secondary/20 p-3 text-sm transition-colors hover:border-primary/30"
                 key={entity.id}
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium text-foreground">
-                    {entity.rank}. {entity.label}
+                    <span className="text-primary">{entity.rank}.</span>{" "}
+                    {entity.label}
                   </p>
                   <StatusPill label="Severity" value={entity.severity} />
                   {rankingCoverage ? (
@@ -758,12 +821,15 @@ export function ResearchReportPanel({ report }: { report: ResearchReport }) {
               <p className="text-sm text-muted-foreground">{table.description}</p>
             ) : null}
           </div>
-          <div className="overflow-x-auto rounded-md border bg-background/80">
+          <div className="overflow-x-auto rounded-lg border border-border/60">
             <table className="min-w-full text-left text-sm">
-              <thead className="border-b bg-muted/30">
+              <thead className="border-border/60 border-b bg-secondary/40">
                 <tr>
                   {table.columns.map((column) => (
-                    <th className="px-3 py-2 font-medium text-foreground" key={column}>
+                    <th
+                      className="px-3 py-2 font-medium text-foreground text-xs uppercase tracking-wide"
+                      key={column}
+                    >
                       {column}
                     </th>
                   ))}
@@ -772,7 +838,7 @@ export function ResearchReportPanel({ report }: { report: ResearchReport }) {
               <tbody>
                 {table.rows.map((row, rowIndex) => (
                   <tr
-                    className="border-b last:border-b-0"
+                    className="border-border/40 border-b transition-colors last:border-b-0 odd:bg-secondary/10 hover:bg-accent/30"
                     key={`${table.id}-${rowIndex}`}
                   >
                     {table.columns.map((column) => (
@@ -802,32 +868,41 @@ export function ResearchReportPanel({ report }: { report: ResearchReport }) {
               <StatusPill label="Tools" value={String(section.toolIds.length)} />
             ) : null}
           </div>
-          <div className="rounded-md border bg-background/80 p-3">
+          <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
             <MessageResponse>{section.markdown}</MessageResponse>
           </div>
         </div>
       ))}
 
-      <div className="space-y-2 rounded-md border bg-background/80 p-3">
-        <p className="font-medium text-foreground">Bottom line</p>
-        <p>{report.bottomLine}</p>
+      <div className="space-y-1.5 rounded-lg border-primary/20 border-l-2 bg-accent/30 px-4 py-3">
+        <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+          Bottom line
+        </p>
+        <p className="font-serif text-base text-foreground leading-7">
+          {report.bottomLine}
+        </p>
       </div>
 
       {report.recommendations.length > 0 ? (
-        <div className="space-y-2 rounded-md border bg-background/80 p-3">
+        <div className="space-y-2 rounded-lg border border-border/60 bg-secondary/20 p-3">
           <p className="font-medium text-foreground">Recommendations</p>
-          <ul className="space-y-1 text-sm">
+          <ul className="space-y-1.5 text-sm">
             {report.recommendations.map((recommendation) => (
-              <li key={recommendation}>- {recommendation}</li>
+              <li className="flex gap-2" key={recommendation}>
+                <span className="mt-0.5 text-primary">→</span>
+                <span>{recommendation}</span>
+              </li>
             ))}
           </ul>
         </div>
       ) : null}
 
       {report.caveats.length > 0 ? (
-        <div className="space-y-2 rounded-md border bg-background/80 p-3">
-          <p className="font-medium text-foreground">Caveats</p>
-          <ul className="space-y-1 text-sm text-muted-foreground">
+        <div className="space-y-2 rounded-lg border border-border/60 bg-muted/30 p-3">
+          <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+            Caveats
+          </p>
+          <ul className="space-y-1 text-muted-foreground text-sm">
             {report.caveats.map((caveat) => (
               <li key={caveat}>- {caveat}</li>
             ))}
@@ -847,9 +922,11 @@ function UsageReceipt({ usage }: { usage: DiscoverPayload["usage"] }) {
     usage.nativeSymbol ?? resolveProductChain(usage.chain).nativeSymbol;
 
   return (
-    <div className="rounded-md border bg-background/70 p-3">
+    <div className="rounded-xl border border-border/70 bg-background p-4 shadow-xs">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="font-medium text-foreground">Usage receipt</p>
+        <p className="font-serif font-semibold text-base text-foreground tracking-tight">
+          Usage receipt
+        </p>
         <StatusPill label="Status" value={usage.status} />
         <StatusPill label="Model" value={usage.model} />
         <StatusPill
@@ -874,9 +951,13 @@ function UsageReceipt({ usage }: { usage: DiscoverPayload["usage"] }) {
 
 function ReceiptValue({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-md bg-muted/40 px-2 py-1.5">
-      <p className="text-muted-foreground">{label}</p>
-      <p className="truncate font-medium text-foreground">{value}</p>
+    <div className="min-w-0 rounded-lg border border-border/50 bg-secondary/30 px-2.5 py-1.5">
+      <p className="text-muted-foreground text-xs uppercase tracking-wide">
+        {label}
+      </p>
+      <p className="truncate font-medium font-mono text-foreground text-xs">
+        {value}
+      </p>
     </div>
   );
 }
@@ -903,7 +984,12 @@ function VerificationDetails({
             </TaskItemFile>
           </TaskItem>
           <TaskItem>
-            <TaskItemFile>
+            <TaskItemFile
+              className={cn(
+                isProofAnchored(zeroG.chain.status) &&
+                  "border-success-foreground/25 bg-success/30 text-success-foreground",
+              )}
+            >
               <ShieldCheckIcon className="size-3" />
               {chainName}: {zeroG.chain.status}
             </TaskItemFile>
@@ -958,9 +1044,21 @@ function ProofLink({
   value?: string;
 }) {
   const content = (
-    <div className="rounded-md border bg-background/70 p-2">
-      <p className="font-medium text-foreground">{label}</p>
-      <p className="mt-1 break-all">{value || "Not available"}</p>
+    <div
+      className={cn(
+        "rounded-lg border border-border/70 bg-background p-2.5 transition-colors",
+        href && "group/proof hover:border-primary/40 hover:bg-accent/30",
+      )}
+    >
+      <p className="flex items-center justify-between gap-2 font-medium text-foreground text-xs">
+        {label}
+        {href && (
+          <ExternalLinkIcon className="size-3 text-muted-foreground/60 transition-colors group-hover/proof:text-primary" />
+        )}
+      </p>
+      <p className="mt-1 break-all font-mono text-muted-foreground text-xs">
+        {value || "Not available"}
+      </p>
     </div>
   );
 

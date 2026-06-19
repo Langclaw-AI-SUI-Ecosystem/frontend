@@ -20,6 +20,7 @@ import {
   TranscriptionSegment,
 } from "@/components/ai-elements/transcription";
 import {
+  ArrowUpRightIcon,
   BadgeCheckIcon,
   BotIcon,
   DatabaseIcon,
@@ -112,13 +113,21 @@ const ChatInputSuggestions = () => {
     <div className="grid w-full gap-3 md:grid-cols-3">
       {CHAT_INPUT_SUGGESTIONS.map((suggestion) => (
         <Suggestion
-          className="h-full items-start justify-start rounded-lg px-4 py-3"
+          className="group/card h-full items-start justify-start rounded-xl border-border/70 px-4 py-3.5 shadow-xs hover:-translate-y-0.5 hover:shadow-sm"
           key={suggestion.label}
           onClick={textInput.setInput}
           suggestion={suggestion.prompt}
         >
-          <span className="flex flex-col gap-1">
-            <span className="font-medium">{suggestion.label}</span>
+          <span className="flex w-full flex-col gap-1.5">
+            <span className="flex items-center justify-between gap-2">
+              <span className="font-medium text-foreground text-sm">
+                {suggestion.label}
+              </span>
+              <ArrowUpRightIcon
+                aria-hidden="true"
+                className="size-3.5 text-muted-foreground/60 transition-colors group-hover/card:text-primary"
+              />
+            </span>
             <span className="text-muted-foreground text-xs leading-5">
               {suggestion.description}
             </span>
@@ -318,22 +327,27 @@ const ChatInput = () => {
 
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-8rem)] w-full max-w-6xl flex-col justify-center gap-8 px-1 py-4">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
-        <section className="flex min-w-0 flex-col gap-6">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+        <section className="flex min-w-0 flex-col gap-7">
           <StatusStrip />
 
-          <div className="flex flex-col gap-3">
-            <h1 className="max-w-3xl text-balance font-semibold text-3xl tracking-normal md:text-5xl">
-              Ask Langclaw for Sui intelligence.
+          <div className="flex flex-col gap-4">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-accent/40 px-3 py-1 font-medium text-accent-foreground text-xs">
+              <span className="size-1.5 rounded-full bg-primary" />
+              Sui Intelligence
+            </span>
+            <h1 className="max-w-3xl text-balance font-serif font-semibold text-4xl text-foreground leading-[1.05] tracking-tight md:text-6xl">
+              Ask Langclaw for{" "}
+              <span className="text-primary">Sui intelligence</span>.
             </h1>
-            <p className="max-w-2xl text-muted-foreground leading-7">
+            <p className="max-w-2xl text-balance text-lg text-muted-foreground leading-8">
               Use Chat for direct answers, or switch to Research for
               source-backed evidence, source gaps, and on-chain checks.
             </p>
           </div>
 
           <PromptInputProvider>
-            <div className="flex flex-col gap-4 rounded-lg border bg-background p-3 shadow-sm">
+            <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-background p-4 shadow-sm transition-shadow focus-within:border-primary/40 focus-within:shadow-md focus-within:ring-4 focus-within:ring-primary/10">
               <PromptInput
                 className="w-full overflow-hidden"
                 onSubmit={handleSubmit}
@@ -341,7 +355,7 @@ const ChatInput = () => {
                 <SpeechTranscriptionPreview segments={speechSegments} />
                 <PromptInputBody>
                   <PromptInputTextarea
-                    className="min-h-24"
+                    className="min-h-28 text-base leading-7"
                     placeholder="Ask about smart-money flow, liquidity anomalies, or protocol momentum..."
                   />
                 </PromptInputBody>
@@ -362,16 +376,27 @@ const ChatInput = () => {
 
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between gap-3">
-                <p className="font-medium text-sm">Try a Sui prompt</p>
-                <Badge variant="outline">Research-ready</Badge>
+                <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
+                  Try a Sui prompt
+                </p>
+                <Badge
+                  className="border-primary/30 bg-accent/40 text-accent-foreground"
+                  variant="outline"
+                >
+                  Research-ready
+                </Badge>
               </div>
               <ChatInputSuggestions />
             </div>
           </PromptInputProvider>
 
           {error && (
-            <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-              {error}
+            <p className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-3.5 py-2.5 text-destructive text-sm">
+              <TriangleAlertIcon
+                aria-hidden="true"
+                className="mt-0.5 size-4 shrink-0"
+              />
+              <span>{error}</span>
             </p>
           )}
         </section>
@@ -385,13 +410,13 @@ const ChatInput = () => {
 
 function StatusStrip() {
   return (
-    <div className="flex flex-wrap gap-2 rounded-lg border bg-muted/30 p-2">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
       {statusItems.map((item) => {
         const Icon = item.icon;
 
         return (
           <span
-            className="inline-flex items-center gap-2 rounded-md bg-background px-3 py-1.5 text-muted-foreground text-xs"
+            className="inline-flex items-center gap-2 font-medium text-muted-foreground text-xs"
             key={item.label}
           >
             <Icon aria-hidden="true" className="size-3.5 text-primary" />
@@ -405,29 +430,33 @@ function StatusStrip() {
 
 function ResearchContextPanel() {
   return (
-    <aside className="rounded-lg border bg-background p-4 shadow-sm">
+    <aside className="rounded-2xl border border-border/70 bg-secondary/30 p-5 shadow-xs lg:sticky lg:top-8">
       <div className="flex flex-col gap-2">
-        <p className="font-semibold">Research returns more than a reply.</p>
+        <p className="font-serif font-semibold text-foreground text-lg tracking-tight">
+          Research returns more than a reply.
+        </p>
         <p className="text-muted-foreground text-sm leading-6">
           Switch to Research when the question needs evidence, source quality,
           and a follow-up path.
         </p>
       </div>
 
-      <div className="mt-5 grid gap-3">
+      <div className="mt-5 flex flex-col gap-2.5">
         {researchContext.map((item) => {
           const Icon = item.icon;
 
           return (
             <div
-              className="flex gap-3 rounded-lg border bg-muted/20 p-3"
+              className="flex gap-3 rounded-xl border border-border/60 bg-background p-3 transition-colors hover:border-primary/30"
               key={item.label}
             >
-              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-background text-primary">
+              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent/60 text-primary">
                 <Icon aria-hidden="true" className="size-4" />
               </span>
               <div className="min-w-0">
-                <p className="font-medium text-sm">{item.label}</p>
+                <p className="font-medium text-foreground text-sm">
+                  {item.label}
+                </p>
                 <p className="mt-1 text-muted-foreground text-xs leading-5">
                   {item.text}
                 </p>

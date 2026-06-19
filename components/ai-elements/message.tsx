@@ -55,7 +55,7 @@ export const MessageContent = ({
   <div
     className={cn(
       "is-user:dark flex w-fit min-w-0 max-w-full flex-col gap-2 overflow-hidden text-sm",
-      "group-[.is-user]:ml-auto group-[.is-user]:rounded-lg group-[.is-user]:bg-secondary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground",
+      "group-[.is-user]:ml-auto group-[.is-user]:rounded-2xl group-[.is-user]:rounded-br-md group-[.is-user]:border group-[.is-user]:border-border/60 group-[.is-user]:bg-secondary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground group-[.is-user]:shadow-xs",
       "group-[.is-assistant]:text-foreground",
       className
     )}
@@ -327,7 +327,13 @@ export const MessageResponse = memo(
   ({ className, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn(
-        "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        "size-full leading-7 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        // Editorial prose: serif display headings, refined rhythm, Sui-blue links.
+        "[&_h1]:font-serif [&_h1]:font-semibold [&_h1]:tracking-tight [&_h2]:font-serif [&_h2]:font-semibold [&_h2]:tracking-tight [&_h3]:font-serif [&_h3]:font-medium",
+        "[&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground",
+        "[&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-primary/40 hover:[&_a]:decoration-primary",
+        "[&_strong]:font-semibold [&_strong]:text-foreground",
+        "[&_blockquote]:border-primary/30 [&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground [&_blockquote]:italic",
         className
       )}
       plugins={streamdownPlugins}

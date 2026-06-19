@@ -1,23 +1,12 @@
 import Link from "next/link";
 import {
   ArrowRightIcon,
-  BarChart3Icon,
-  CheckCircle2Icon,
-  DatabaseIcon,
-  ExternalLinkIcon,
+  ArrowUpRightIcon,
   SearchIcon,
   ShieldCheckIcon,
-  TriangleAlertIcon,
 } from "lucide-react";
-
 import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import {
-  MAINNET_ARTIFACTS,
-  suiObjectUrl,
-  suiTxUrl,
-  walrusBlobUrl,
-} from "@/lib/mainnet-artifacts";
+import { MAINNET_ARTIFACTS, suiTxUrl } from "@/lib/mainnet-artifacts";
 import {
   InputGroup,
   InputGroupAddon,
@@ -25,56 +14,48 @@ import {
   InputGroupInput,
 } from "./ui/input-group";
 
-const evidenceRows = [
+const trustChips = [
+  { label: "Network", value: "Sui mainnet" },
   {
-    title: "Walrus storage",
-    value: "Encrypted memory blob is publicly retrievable",
-    status: "verified",
+    label: "Package",
+    value: `${MAINNET_ARTIFACTS.packageId.slice(0, 6)}…${MAINNET_ARTIFACTS.packageId.slice(-4)}`,
   },
   {
-    title: "Seal privacy",
-    value: "Owner-gated mainnet key server round-trip",
-    status: "verified",
-  },
-  {
-    title: "Sui proof",
-    value: "Memory hash anchored in a mainnet transaction",
-    status: "verified",
+    label: "Proof tx",
+    value: `${MAINNET_ARTIFACTS.memoryTx.slice(0, 6)}…${MAINNET_ARTIFACTS.memoryTx.slice(-4)}`,
   },
 ];
 
-const identityChips: Array<{ href?: string; label: string; value: string }> = [
-  { label: "Walrus network", value: "mainnet" },
-  {
-    label: "Package ID",
-    value: `${MAINNET_ARTIFACTS.packageId.slice(0, 8)}...${MAINNET_ARTIFACTS.packageId.slice(-6)}`,
-    href: suiObjectUrl(MAINNET_ARTIFACTS.packageId),
-  },
-  {
-    label: "Proof transaction",
-    value: `${MAINNET_ARTIFACTS.memoryTx.slice(0, 8)}...${MAINNET_ARTIFACTS.memoryTx.slice(-6)}`,
-    href: suiTxUrl(MAINNET_ARTIFACTS.memoryTx),
-  },
+const evidenceChips = [
+  { label: "Evidence", value: "DeepBook + Dune" },
+  { label: "Sources", value: "On-chain + social" },
+  { label: "Proof", value: "Sui anchor" },
 ];
 
 export default function Hero() {
   return (
     <section className="relative overflow-hidden">
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,color-mix(in_oklab,var(--border)_72%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklab,var(--border)_72%,transparent)_1px,transparent_1px)] bg-[size:56px_56px] opacity-35" />
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:px-6 md:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-5">
-            <h1 className="max-w-3xl text-balance font-semibold text-4xl tracking-normal md:text-5xl md:leading-[1.04]">
-              Private AI memory on Walrus, verified on Sui.
-            </h1>
-            <p className="max-w-2xl text-base text-muted-foreground leading-7 md:text-lg">
-              Langclaw recalls prior research, encrypts new memory with Seal,
-              stores it on Walrus, and anchors its hash on Sui mainnet.
-            </p>
-          </div>
+      <div className="-z-10 absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_oklab,var(--border)_60%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklab,var(--border)_60%,transparent)_1px,transparent_1px)] bg-[size:64px_64px] opacity-40 [mask-image:radial-gradient(ellipse_at_top,black,transparent_72%)]" />
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 md:px-6 md:py-28 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="flex flex-col gap-7">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-accent/70 px-3 py-1 font-mono text-[11px] text-accent-foreground uppercase tracking-[0.14em]">
+            <span className="size-1.5 rounded-full bg-primary" />
+            AI alpha intelligence · verified on Sui
+          </span>
 
-          <form action="/chat" className="max-w-2xl" method="get">
-            <InputGroup className="min-h-14 rounded-lg bg-background shadow-sm">
+          <h1 className="font-serif font-medium text-5xl text-foreground leading-[1.04] tracking-tight md:text-6xl">
+            Find the alpha on Sui,{" "}
+            <span className="text-primary">proven on-chain.</span>
+          </h1>
+
+          <p className="max-w-xl text-lg text-muted-foreground leading-8">
+            Langclaw researches smart-money flows, liquidity anomalies, and
+            protocol momentum across on-chain and social sources — then anchors
+            every answer on Sui so you can verify it, not just trust it.
+          </p>
+
+          <form action="/chat" className="max-w-xl" method="get">
+            <InputGroup className="min-h-14 rounded-xl bg-background shadow-[0_8px_24px_rgba(22,32,58,0.06)]">
               <InputGroupAddon>
                 <SearchIcon aria-hidden="true" />
               </InputGroupAddon>
@@ -82,7 +63,7 @@ export default function Hero() {
                 aria-label="Research prompt"
                 className="h-14 text-base"
                 name="q"
-                placeholder="Research Sui liquidity and remember the findings..."
+                placeholder="Which Sui tokens are smart-money wallets accumulating?"
               />
               <InputGroupAddon align="inline-end">
                 <InputGroupButton size="sm" type="submit" variant="default">
@@ -93,193 +74,108 @@ export default function Hero() {
             </InputGroup>
           </form>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg">
-              <Link href="/chat">
-                Run private research
-                <ArrowRightIcon data-icon="inline-end" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/strategy">
-                <BarChart3Icon data-icon="inline-start" />
-                Strategy Lab
-              </Link>
-            </Button>
-          </div>
+          <p className="text-muted-foreground text-sm">
+            Browse{" "}
+            <Link
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+              href="/proofs"
+            >
+              public proofs
+            </Link>{" "}
+            free · connect a wallet to run live research.
+          </p>
 
-          <div className="grid max-w-2xl gap-2 sm:grid-cols-3">
-            {identityChips.map((item) => {
-              const content = (
-                <>
-                  <span className="block font-mono text-muted-foreground text-[11px] uppercase">
-                    {item.label}
-                  </span>
-                  <span className="mt-1 flex items-center gap-1.5 font-semibold">
-                    {item.value}
-                    {item.href ? (
-                      <ExternalLinkIcon
-                        aria-hidden="true"
-                        className="size-3.5 text-muted-foreground"
-                      />
-                    ) : null}
-                  </span>
-                </>
-              );
-
-              return item.href ? (
-                <a
-                  className="rounded-md border bg-background/85 px-3 py-2 text-sm shadow-sm transition-colors hover:bg-background"
-                  href={item.href}
-                  key={item.label}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  {content}
-                </a>
-              ) : (
-                <div
-                  className="rounded-md border bg-background/85 px-3 py-2 text-sm shadow-sm"
-                  key={item.label}
-                >
-                  {content}
-                </div>
-              );
-            })}
-          </div>
-
+          <dl className="grid max-w-xl grid-cols-3 gap-2 pt-1">
+            {trustChips.map((chip) => (
+              <div
+                className="rounded-lg border border-border/70 bg-secondary/60 px-3 py-2"
+                key={chip.label}
+              >
+                <dt className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.12em]">
+                  {chip.label}
+                </dt>
+                <dd className="mt-1 truncate font-medium font-mono text-foreground text-sm">
+                  {chip.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
 
-        <ResearchPreview />
+        <HeroSignalPeek />
       </div>
     </section>
   );
 }
 
-function ResearchPreview() {
+function HeroSignalPeek() {
   return (
-    <div className="rounded-lg border bg-background shadow-xl shadow-primary/5">
-      <div className="flex items-center justify-between border-b px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-primary" />
-          <span className="font-medium text-sm">Verifiable Memory Console</span>
-        </div>
-        <Badge variant="outline">Sui mainnet</Badge>
-      </div>
-
-      <div className="grid gap-0 lg:grid-cols-[1fr_240px]">
-        <div className="flex flex-col gap-3 p-4">
-          <div className="rounded-lg border bg-muted/30 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="font-medium">Private research memory</p>
-                <p className="text-muted-foreground text-sm">
-                  Research output is encrypted before it reaches Walrus.
-                </p>
-              </div>
-              <Badge variant="secondary">
-                <CheckCircle2Icon data-icon="inline-start" />
-                mainnet verified
-              </Badge>
+    <div className="relative lg:pl-4">
+      <div className="rounded-3xl border border-border/70 bg-card p-1.5 shadow-[0_16px_48px_rgba(22,32,58,0.08)]">
+        <div className="rounded-[20px] border border-border/60 bg-background">
+          <div className="flex items-center justify-between border-border/60 border-b px-5 py-3.5">
+            <div className="flex items-center gap-2">
+              <span className="size-2 rounded-full bg-primary" />
+              <span className="font-medium text-sm">Verified answer</span>
             </div>
+            <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.12em]">
+              Example
+            </span>
           </div>
 
-          <div className="grid gap-3">
-            {evidenceRows.map((row) => (
-              <div
-                className="grid gap-3 rounded-lg border bg-background p-3 text-sm sm:grid-cols-[1fr_auto]"
-                key={row.title}
-              >
-                <div className="min-w-0">
-                  <p className="font-medium">{row.title}</p>
-                  <p className="truncate text-muted-foreground">{row.value}</p>
+          <div className="flex flex-col gap-4 p-5">
+            <div>
+              <p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.12em]">
+                Conclusion
+              </p>
+              <p className="mt-1.5 font-serif text-foreground text-xl leading-snug">
+                Smart-money wallets are rotating into Sui DeFi blue-chips.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              {evidenceChips.map((chip) => (
+                <div
+                  className="rounded-lg border border-border/60 bg-secondary/50 px-3 py-2.5"
+                  key={chip.label}
+                >
+                  <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.1em]">
+                    {chip.label}
+                  </p>
+                  <p className="mt-1 font-medium text-foreground text-xs">
+                    {chip.value}
+                  </p>
                 </div>
-                <EvidenceBadge status={row.status} />
-              </div>
-            ))}
-          </div>
-
-          <div className="rounded-lg border bg-background p-4">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <p className="font-medium text-sm">Public proof artifact</p>
-                <p className="text-muted-foreground text-xs">
-                  Inspect the blob without trusting this interface
-                </p>
-              </div>
-              <a
-                className="inline-flex items-center gap-1 font-mono text-primary text-xs hover:underline"
-                href={walrusBlobUrl(MAINNET_ARTIFACTS.publicBlobId)}
-                rel="noreferrer"
-                target="_blank"
-              >
-                Open blob <ExternalLinkIcon className="size-3" />
-              </a>
+              ))}
             </div>
-            <code className="block break-all rounded-md bg-muted p-3 text-xs">
-              {MAINNET_ARTIFACTS.publicBlobId}
-            </code>
+
+            <div className="flex items-center gap-3 rounded-xl border border-[color-mix(in_oklab,var(--success-foreground)_22%,transparent)] bg-success px-4 py-3">
+              <ShieldCheckIcon className="size-5 shrink-0 text-success-foreground" />
+              <div className="min-w-0">
+                <p className="font-medium text-sm text-success-foreground">
+                  Verified on Sui mainnet
+                </p>
+                <a
+                  className="inline-flex items-center gap-1 font-mono text-success-foreground/80 text-xs hover:underline"
+                  href={suiTxUrl(MAINNET_ARTIFACTS.memoryTx)}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {`${MAINNET_ARTIFACTS.memoryTx.slice(0, 10)}…${MAINNET_ARTIFACTS.memoryTx.slice(-6)}`}
+                  <ArrowUpRightIcon className="size-3" />
+                </a>
+              </div>
+            </div>
+
+            <Button asChild className="w-full" variant="outline">
+              <Link href="/chat">
+                Run this research
+                <ArrowRightIcon data-icon="inline-end" />
+              </Link>
+            </Button>
           </div>
         </div>
-
-        <aside className="border-t bg-muted/40 p-4 lg:border-t-0 lg:border-l">
-          <div className="flex flex-col gap-4">
-            <ConsoleSideItem
-              icon={<ShieldCheckIcon aria-hidden="true" />}
-              label="Proof status"
-              value="Sui mainnet anchor confirmed"
-            />
-            <ConsoleSideItem
-              icon={<DatabaseIcon aria-hidden="true" />}
-              label="Evidence"
-              value="Walrus blob and content hash"
-            />
-            <ConsoleSideItem
-              icon={<TriangleAlertIcon aria-hidden="true" />}
-              label="Privacy"
-              value="Seal owner policy enforced"
-            />
-          </div>
-        </aside>
       </div>
-    </div>
-  );
-}
-
-function EvidenceBadge({ status }: { status: string }) {
-  if (status === "gap") {
-    return (
-      <Badge className="bg-amber-100 text-amber-900" variant="secondary">
-        source gap
-      </Badge>
-    );
-  }
-
-  if (status === "review") {
-    return <Badge variant="outline">review</Badge>;
-  }
-
-  return <Badge variant="secondary">verified</Badge>;
-}
-
-function ConsoleSideItem({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex gap-3 text-sm">
-      <span className="mt-0.5 text-primary [&_svg]:size-4">{icon}</span>
-      <span className="min-w-0">
-        <span className="block font-medium">{label}</span>
-        <span className="block text-muted-foreground text-xs leading-5">
-          {value}
-        </span>
-      </span>
     </div>
   );
 }

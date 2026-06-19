@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Inter,
+  JetBrains_Mono,
+  Source_Serif_4,
+} from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +15,18 @@ import Web3Provider from "@/lib/Web3Provider";
 import { WalletSessionAutoSign } from "@/components/WalletSessionAutoSign";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+
+const serif = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-serif",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +65,8 @@ export default function RootLayout({
         "antialiased",
         geistSans.variable,
         geistMono.variable,
+        serif.variable,
+        mono.variable,
         "font-sans",
         inter.variable,
       )}
