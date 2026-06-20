@@ -32,6 +32,7 @@ import {
   InlineCitationText,
 } from "@/components/ai-elements/inline-citation";
 import { MessageResponse } from "@/components/ai-elements/message";
+import { AlphaWatchlistButton } from "@/components/AlphaWatchlistButton";
 import {
   Plan,
   PlanAction,
@@ -128,88 +129,94 @@ export function DiscoverDetails({ payload }: { payload: DiscoverPayload }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
-        {payload.chainContext ? (
-          <>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-wrap gap-2">
+          {payload.chainContext ? (
+            <>
+              <StatusPill
+                label="Product chain"
+                value={payload.chainContext.productChain.name}
+              />
+              <StatusPill
+                label="Analysis chain"
+                value={payload.chainContext.analysisChain.name}
+              />
+            </>
+          ) : (
+            <StatusPill label="Track" value={chainName} />
+          )}
+          <StatusPill label="Mode" value="AI Alpha" />
+          <StatusPill label="Evidence" value="Evidence-backed" />
+          {payload.chainContext?.unsupportedAnalysisChain ? (
             <StatusPill
-              label="Product chain"
-              value={payload.chainContext.productChain.name}
+              label="Requested"
+              value={`${payload.chainContext.unsupportedAnalysisChain.name} unsupported`}
             />
+          ) : null}
+          {zeroG?.chain.status && (
             <StatusPill
-              label="Analysis chain"
-              value={payload.chainContext.analysisChain.name}
+              label="Proof"
+              value={
+                zeroG.chain.status === "anchored" ||
+                zeroG.chain.status === "pending"
+                  ? "On-chain recorded"
+                  : "Prepared"
+              }
+              variant={
+                isProofAnchored(zeroG.chain.status) ? "verified" : "default"
+              }
             />
-          </>
-        ) : (
-          <StatusPill label="Track" value={chainName} />
-        )}
-        <StatusPill label="Mode" value="AI Alpha" />
-        <StatusPill label="Evidence" value="Evidence-backed" />
-        {payload.chainContext?.unsupportedAnalysisChain ? (
-          <StatusPill
-            label="Requested"
-            value={`${payload.chainContext.unsupportedAnalysisChain.name} unsupported`}
-          />
-        ) : null}
-        {zeroG?.chain.status && (
-          <StatusPill
-            label="Proof"
-            value={
-              zeroG.chain.status === "anchored" ||
-              zeroG.chain.status === "pending"
-                ? "On-chain recorded"
-                : "Prepared"
-            }
-            variant={
-              isProofAnchored(zeroG.chain.status) ? "verified" : "default"
-            }
-          />
-        )}
-        <StatusPill label="Runtime" value={payload.orchestration.runtime} />
-        {payload.finalAnswerMeta?.synthesis && (
-          <StatusPill
-            label="Synthesis"
-            value={payload.finalAnswerMeta.synthesis}
-          />
-        )}
-        {payload.finalAnswerMeta?.requestedModel && (
-          <StatusPill
-            label="Requested"
-            value={payload.finalAnswerMeta.requestedModel}
-          />
-        )}
-        {(payload.finalAnswerMeta?.usedModel || payload.finalAnswerMeta?.model) && (
-          <StatusPill
-            label="Used"
-            value={
-              payload.finalAnswerMeta.usedModel ?? payload.finalAnswerMeta.model ?? ""
-            }
-          />
-        )}
-        {payload.finalAnswerMeta?.modelHonored === false && (
-          <StatusPill
-            label="Fallback"
-            value={payload.finalAnswerMeta.fallbackFrom ?? "model fallback"}
-          />
-        )}
-        {zeroG?.compute?.status && (
-          <StatusPill label="AI compute" value={zeroG.compute.status} />
-        )}
-        {zeroG?.compute?.teeVerification?.status && (
-          <StatusPill label="TEE" value={zeroG.compute.teeVerification.status} />
-        )}
-        {zeroG?.storage.status && (
-          <StatusPill label="Evidence bundle" value={zeroG.storage.status} />
-        )}
-        {zeroG?.chain.status && (
-          <StatusPill
-            label="Agent decision proof"
-            value={zeroG.chain.status}
-            variant={
-              isProofAnchored(zeroG.chain.status) ? "verified" : "default"
-            }
-          />
-        )}
+          )}
+          <StatusPill label="Runtime" value={payload.orchestration.runtime} />
+          {payload.finalAnswerMeta?.synthesis && (
+            <StatusPill
+              label="Synthesis"
+              value={payload.finalAnswerMeta.synthesis}
+            />
+          )}
+          {payload.finalAnswerMeta?.requestedModel && (
+            <StatusPill
+              label="Requested"
+              value={payload.finalAnswerMeta.requestedModel}
+            />
+          )}
+          {(payload.finalAnswerMeta?.usedModel ||
+            payload.finalAnswerMeta?.model) && (
+            <StatusPill
+              label="Used"
+              value={
+                payload.finalAnswerMeta.usedModel ??
+                payload.finalAnswerMeta.model ??
+                ""
+              }
+            />
+          )}
+          {payload.finalAnswerMeta?.modelHonored === false && (
+            <StatusPill
+              label="Fallback"
+              value={payload.finalAnswerMeta.fallbackFrom ?? "model fallback"}
+            />
+          )}
+          {zeroG?.compute?.status && (
+            <StatusPill label="AI compute" value={zeroG.compute.status} />
+          )}
+          {zeroG?.compute?.teeVerification?.status && (
+            <StatusPill label="TEE" value={zeroG.compute.teeVerification.status} />
+          )}
+          {zeroG?.storage.status && (
+            <StatusPill label="Evidence bundle" value={zeroG.storage.status} />
+          )}
+          {zeroG?.chain.status && (
+            <StatusPill
+              label="Agent decision proof"
+              value={zeroG.chain.status}
+              variant={
+                isProofAnchored(zeroG.chain.status) ? "verified" : "default"
+              }
+            />
+          )}
+        </div>
+        {payload.onChain ? <AlphaWatchlistButton payload={payload.onChain} /> : null}
       </div>
 
       <Agent>
