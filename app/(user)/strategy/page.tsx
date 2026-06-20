@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircleIcon,
   ArrowUpRightIcon,
@@ -101,6 +101,7 @@ export default function StrategyPage() {
   const [selectedPair, setSelectedPair] = useState(samplePairs[0].value);
   const [customPair, setCustomPair] = useState("");
   const [queryId, setQueryId] = useState("");
+  const [importedFromWatchlist, setImportedFromWatchlist] = useState(false);
   const [backtest, setBacktest] = useState<StrategyBacktestPayload | null>(null);
   const [paperTrade, setPaperTrade] = useState<StrategyPaperTradePayload | null>(
     null,
@@ -112,6 +113,32 @@ export default function StrategyPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState<"backtest" | "paper" | "scan" | "">("");
   const chainConfig = resolveProductChain(selectedChain);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const chain = params.get("chain");
+    const pair = params.get("pair")?.trim();
+    const source = params.get("source");
+
+    if (!isProductChainId(chain) && !pair && source !== "watchlist") {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      if (isProductChainId(chain)) {
+        setSelectedChain(chain);
+      }
+
+      if (pair) {
+        setSelectedPair("default");
+        setCustomPair(pair);
+      }
+
+      setImportedFromWatchlist(source === "watchlist");
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const pairAddress = useMemo(() => {
     const custom = customPair.trim();
@@ -359,6 +386,9 @@ export default function StrategyPage() {
             </SelectContent>
           </Select>
           <Badge variant="secondary">Paper trading only</Badge>
+          {importedFromWatchlist && (
+            <Badge variant="outline">Imported from Alpha Watchlist</Badge>
+          )}
         </div>
       </div>
 
