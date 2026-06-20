@@ -9,6 +9,7 @@ import {
   LANGCLAW_ALPHA_WATCHLIST_UPDATED_EVENT,
   buildAlphaWatchlistItem,
   dispatchAlphaWatchlistUpdated,
+  rememberAlphaWatchlistSession,
 } from "@/lib/alpha-watchlist";
 import { useWalletSession } from "@/hooks/use-wallet-session";
 import {
@@ -23,11 +24,15 @@ import { cn } from "@/lib/utils";
 type AlphaWatchlistButtonProps = {
   className?: string;
   payload: OnChainToolFinalPayload;
+  sessionId?: string;
+  sourcePrompt?: string;
 };
 
 export function AlphaWatchlistButton({
   className,
   payload,
+  sessionId,
+  sourcePrompt,
 }: AlphaWatchlistButtonProps) {
   const {
     clearWalletAuth,
@@ -37,7 +42,10 @@ export function AlphaWatchlistButton({
     isSigning,
     openWalletModal,
   } = useWalletSession();
-  const watchlistItem = useMemo(() => buildAlphaWatchlistItem(payload), [payload]);
+  const watchlistItem = useMemo(
+    () => buildAlphaWatchlistItem(payload, { sessionId, sourcePrompt }),
+    [payload, sessionId, sourcePrompt],
+  );
   const [isWatchlisted, setIsWatchlisted] = useState(false);
   const [isSavingWatchlist, setIsSavingWatchlist] = useState(false);
 
@@ -95,6 +103,7 @@ export function AlphaWatchlistButton({
     try {
       const wallet = await getWalletAuth();
       await upsertAlphaWatchlistItem(wallet, watchlistItem);
+      rememberAlphaWatchlistSession(watchlistItem.id, sessionId);
       setIsWatchlisted(true);
       dispatchAlphaWatchlistUpdated();
       toast.success("Watchlist added", {

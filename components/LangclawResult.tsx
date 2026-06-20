@@ -98,14 +98,18 @@ type LangclawResultProps = {
   className?: string;
   events?: WorkflowProgressEvent[];
   payload: DiscoverPayload;
+  sessionId?: string;
   showWorkflow?: boolean;
+  sourcePrompt?: string;
 };
 
 export function LangclawResult({
   className,
   events = [],
   payload,
+  sessionId,
   showWorkflow = true,
+  sourcePrompt,
 }: LangclawResultProps) {
   const workflowEvents = events.length
     ? events
@@ -117,12 +121,24 @@ export function LangclawResult({
         <WorkflowPlan events={workflowEvents} />
       ) : null}
       <MessageResponse>{buildDiscoverAnswerContent(payload)}</MessageResponse>
-      <DiscoverDetails payload={payload} />
+      <DiscoverDetails
+        payload={payload}
+        sessionId={sessionId}
+        sourcePrompt={sourcePrompt}
+      />
     </div>
   );
 }
 
-export function DiscoverDetails({ payload }: { payload: DiscoverPayload }) {
+export function DiscoverDetails({
+  payload,
+  sessionId,
+  sourcePrompt,
+}: {
+  payload: DiscoverPayload;
+  sessionId?: string;
+  sourcePrompt?: string;
+}) {
   const zeroG = payload.proof ?? payload.zeroG;
   const chainName = getDiscoverChainName(payload, zeroG);
   const structuredReport = payload.report ?? payload.onChain?.report;
@@ -216,7 +232,13 @@ export function DiscoverDetails({ payload }: { payload: DiscoverPayload }) {
             />
           )}
         </div>
-        {payload.onChain ? <AlphaWatchlistButton payload={payload.onChain} /> : null}
+        {payload.onChain ? (
+          <AlphaWatchlistButton
+            payload={payload.onChain}
+            sessionId={sessionId}
+            sourcePrompt={sourcePrompt}
+          />
+        ) : null}
       </div>
 
       <Agent>

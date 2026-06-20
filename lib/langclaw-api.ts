@@ -1406,6 +1406,13 @@ export type StrategyScanResponse = {
   scan: StrategyScanPayload;
 };
 
+export type AlphaWatchlistPriority = "high" | "low" | "medium";
+export type AlphaWatchlistStatus =
+  | "reviewed"
+  | "snoozed"
+  | "stale"
+  | "watching";
+
 export type AlphaWatchlistItem = {
   addedAt: string;
   agentId?: string;
@@ -1418,13 +1425,27 @@ export type AlphaWatchlistItem = {
   gapCount: number;
   id: string;
   intent: string;
+  note?: string;
+  priority: AlphaWatchlistPriority;
   proofTx?: string;
   recommendation: string;
+  reviewedAt?: string;
+  sessionId?: string;
   signalType: string;
+  snoozedUntil?: string;
+  sourcePrompt?: string;
   sourceCount: number;
+  status: AlphaWatchlistStatus;
   subject: string;
   summary: string;
   title: string;
+};
+
+export type AlphaWatchlistMetadataInput = {
+  note?: string | null;
+  priority?: AlphaWatchlistPriority;
+  snoozedUntil?: string | null;
+  status?: AlphaWatchlistStatus;
 };
 
 export type AlphaWatchlistPayload = {
@@ -2348,6 +2369,26 @@ export async function upsertAlphaWatchlistItem(
 
   if (!payload.item) {
     throw new LangclawApiError("Watchlist item was not returned.", 500);
+  }
+
+  return payload.item;
+}
+
+export async function updateAlphaWatchlistItem(
+  wallet: WalletAuth,
+  itemId: string,
+  updates: AlphaWatchlistMetadataInput,
+) {
+  const response = await postJson("/api/watchlist", {
+    action: "update",
+    itemId,
+    updates,
+    wallet,
+  });
+  const payload = await readJsonResponse<AlphaWatchlistPayload>(response);
+
+  if (!payload.item) {
+    throw new LangclawApiError("Updated watchlist item was not returned.", 500);
   }
 
   return payload.item;

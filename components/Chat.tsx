@@ -643,8 +643,13 @@ const Chat = ({ sessionId }: ChatProps) => {
                 </Suggestions>
               </ConversationEmptyState>
             ) : (
-              visibleMessages.map((message) => {
+              visibleMessages.map((message, messageIndex) => {
+                const activeSessionId = session?.id ?? sessionId;
                 const content = getUIMessageText(message);
+                const sourcePrompt =
+                  message.role === "assistant"
+                    ? findPreviousUserPrompt(visibleMessages, messageIndex)
+                    : undefined;
                 const reasoningText = getVisibleReasoningText(message);
                 const storedMessage = uiMessagesToStoredMessages([message])[0];
                 const isAssistantStreaming =
@@ -674,7 +679,9 @@ const Chat = ({ sessionId }: ChatProps) => {
                         {storedMessage && (
                           <MessageDetails
                             message={storedMessage}
+                            sessionId={activeSessionId}
                             showReasoning={!reasoningText}
+                            sourcePrompt={sourcePrompt}
                           />
                         )}
                       </MessageContent>
@@ -1021,10 +1028,14 @@ function MessageTokenUsage({ message }: { message: StoredChatMessage }) {
 
 function MessageDetails({
   message,
+  sessionId,
   showReasoning = true,
+  sourcePrompt,
 }: {
   message: StoredChatMessage;
+  sessionId?: string;
   showReasoning?: boolean;
+  sourcePrompt?: string;
 }) {
   const reasoningText = buildReasoningText(message);
   const workflowEvents = message.progressEvents ?? [];
@@ -1090,9 +1101,21 @@ function MessageDetails({
 
       {workflowEvents.length ? <WorkflowPlan events={workflowEvents} /> : null}
 
-      {message.result && <DiscoverDetails payload={message.result} />}
+      {message.result && (
+        <DiscoverDetails
+          payload={message.result}
+          sessionId={sessionId}
+          sourcePrompt={sourcePrompt}
+        />
+      )}
 
-      {message.onChain && !message.result && <OnChainDetails payload={message.onChain} />}
+      {message.onChain && !message.result && (
+        <OnChainDetails
+          payload={message.onChain}
+          sessionId={sessionId}
+          sourcePrompt={sourcePrompt}
+        />
+      )}
 
       {(message.error || message.directAnswer?.error) && (
         <p className="text-destructive">
@@ -1154,7 +1177,15 @@ function RouterUsageTooltip({
   );
 }
 
-function OnChainDetails({ payload }: { payload: OnChainToolFinalPayload }) {
+function OnChainDetails({
+  payload,
+  sessionId,
+  sourcePrompt,
+}: {
+  payload: OnChainToolFinalPayload;
+  sessionId?: string;
+  sourcePrompt?: string;
+}) {
   return (
     <div className="space-y-3 rounded-xl border border-border/70 bg-background p-4 shadow-xs">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -1177,7 +1208,11 @@ function OnChainDetails({ payload }: { payload: OnChainToolFinalPayload }) {
             />
           )}
         </div>
-        <AlphaWatchlistButton payload={payload} />
+        <AlphaWatchlistButton
+          payload={payload}
+          sessionId={sessionId}
+          sourcePrompt={sourcePrompt}
+        />
       </div>
       {payload.report ? <ResearchReportPanel report={payload.report} /> : null}
       {payload.proof && <OnChainProofDetails proof={payload.proof} />}
@@ -2616,6 +2651,19 @@ function getRouterUsageCostNeuron(
 function getLatestAssistantMessageId(messages: LangclawUIMessage[]) {
   return [...messages].reverse().find((message) => message.role === "assistant")
     ?.id;
+}
+
+function findPreviousUserPrompt(
+  messages: LangclawUIMessage[],
+  beforeIndex: number,
+) {
+  for (let index = beforeIndex - 1; index >= 0; index -= 1) {
+    if (messages[index]?.role === "user") {
+      return getUIMessageText(messages[index]);
+    }
+  }
+
+  return undefined;
 }
 
 function buildReasoningText(message: StoredChatMessage) {
