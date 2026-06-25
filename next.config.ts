@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const backendRewriteDestination = (
-  process.env.LANGCLAW_BACKEND_REWRITE_URL || "http://127.0.0.1:3002"
+  process.env.LANGCLAW_BACKEND_REWRITE_URL ||
+  "https://api.langclaw.43-129-56-85.sslip.io"
 ).replace(/\/+$/, "");
 
 const securityHeaders = [
